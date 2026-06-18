@@ -299,7 +299,7 @@ function CellView({ notebookId, cell }: { notebookId: string; cell: NotebookCell
               overviewRulerLanes: 0,
               overviewRulerBorder: false,
               hideCursorInOverviewRuler: true,
-              scrollbar: { useShadows: false, verticalScrollbarSize: 8, horizontalScrollbarSize: 8 },
+              scrollbar: { useShadows: false, verticalScrollbarSize: 8, horizontalScrollbarSize: 8, alwaysConsumeMouseWheel: false },
               guides: { indentation: false },
               fixedOverflowWidgets: true,
               inlineSuggest: { enabled: true },
