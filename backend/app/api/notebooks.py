@@ -124,15 +124,35 @@ def delete_notebook(
 def add_cell(
     notebook_id: uuid.UUID,
     cell_type: str = "code",
+    after: int | None = None,
     principal: Principal = Depends(get_principal),
     session: Session = Depends(get_session),
 ) -> CellOut:
+    """Add a cell. With ``after=<position>`` the new cell is inserted right after
+    that cell (VS Code-style); otherwise it's appended to the end."""
     nb = session.get(Notebook, notebook_id)
     if nb is None:
         raise HTTPException(404, "Notebook not found")
     authorize_or_404(principal, Action.EDIT, nb)
-    cell = NotebookCell(notebook_id=nb.id, position=len(nb.cells), cell_type=CellType(cell_type), source="")
+
+    existing = sorted(nb.cells, key=lambda c: c.position)
+    # `after` is a cell *position* value (not a list index); insert right after the
+    # cell that has it. Robust to gaps left by deletes.
+    if after is None:
+        insert_idx = len(existing)
+    else:
+        insert_idx = next((i + 1 for i, c in enumerate(existing) if c.position == after), len(existing))
+    cell = NotebookCell(notebook_id=nb.id, cell_type=CellType(cell_type), source="", position=insert_idx)
     session.add(cell)
+
+    order = existing[:insert_idx] + [cell] + existing[insert_idx:]
+    # Two-phase renumber to respect the UNIQUE(notebook_id, position) constraint:
+    # first move everything out of the 0..n range, then assign the final order.
+    for i, c in enumerate(order):
+        c.position = 10_000 + i
+    session.flush()
+    for i, c in enumerate(order):
+        c.position = i
     session.flush()
     return _cell_out(cell)
 

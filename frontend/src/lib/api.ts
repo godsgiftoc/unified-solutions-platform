@@ -355,8 +355,8 @@ export const Notebooks = {
   create: (workspaceId: string, name: string) =>
     api.post<NotebookDetail>("/notebooks", { workspace_id: workspaceId, name }),
   get: (id: string) => api.get<NotebookDetail>(`/notebooks/${id}`),
-  addCell: (id: string, cellType: "code" | "markdown" = "code") =>
-    api.post<NotebookCell>(`/notebooks/${id}/cells?cell_type=${cellType}`),
+  addCell: (id: string, cellType: "code" | "markdown" = "code", after?: number) =>
+    api.post<NotebookCell>(`/notebooks/${id}/cells?cell_type=${cellType}${after != null ? `&after=${after}` : ""}`),
   updateCell: (id: string, cellId: string, source: string) =>
     api.patch<NotebookCell>(`/notebooks/${id}/cells/${cellId}`, { source }),
   runCell: (id: string, cellId: string) => api.post<NotebookCell>(`/notebooks/${id}/cells/${cellId}/run`),

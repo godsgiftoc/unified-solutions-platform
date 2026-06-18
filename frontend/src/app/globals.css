@@ -8,11 +8,19 @@
 
 html {
   scroll-behavior: smooth;
+  /* Stop the overscroll "rubber-band" from revealing a light strip above the
+     sticky top nav; the dark fallback matches the nav if a browser still bounces. */
+  overscroll-behavior-y: none;
+  background-color: #1d1849;
+}
+html.dark {
+  background-color: #0b1220;
 }
 
 body {
   @apply bg-white text-slate-900 antialiased;
   font-feature-settings: "cv11", "ss01";
+  overscroll-behavior-y: none;
 }
 
 @layer utilities {

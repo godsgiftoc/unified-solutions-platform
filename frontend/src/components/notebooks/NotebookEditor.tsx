@@ -104,7 +104,7 @@ export function NotebookEditor({ notebookId }: { notebookId: string }) {
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ["notebook", notebookId] });
   const addCell = useMutation({
-    mutationFn: (cellType: "code" | "markdown") => Notebooks.addCell(notebookId, cellType),
+    mutationFn: ({ cellType, after }: { cellType: "code" | "markdown"; after?: number }) => Notebooks.addCell(notebookId, cellType, after),
     onSuccess: invalidate,
   });
   const restart = useMutation({
@@ -178,26 +178,49 @@ export function NotebookEditor({ notebookId }: { notebookId: string }) {
 
         {/* Cells */}
         <div>
-          <div className="max-w-5xl space-y-4">
-            {nb.data.cells.map((cell) => (
-              <CellView key={cell.id} notebookId={notebookId} cell={cell} />
-            ))}
-            <div className="flex gap-2">
-              <button
-                onClick={() => addCell.mutate("code")}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-brand-400 hover:text-brand-700"
-              >
-                <Plus size={14} /> Code
-              </button>
-              <button
-                onClick={() => addCell.mutate("markdown")}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-brand-400 hover:text-brand-700"
-              >
-                <Type size={14} /> Text
-              </button>
-            </div>
+          <div className="max-w-5xl">
+            {nb.data.cells.length === 0 ? (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => addCell.mutate({ cellType: "code" })}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-brand-400 hover:text-brand-700"
+                >
+                  <Plus size={14} /> Code
+                </button>
+                <button
+                  onClick={() => addCell.mutate({ cellType: "markdown" })}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-slate-300 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-brand-400 hover:text-brand-700"
+                >
+                  <Type size={14} /> Text
+                </button>
+              </div>
+            ) : (
+              nb.data.cells.map((cell) => (
+                <div key={cell.id}>
+                  <CellView notebookId={notebookId} cell={cell} />
+                  <InsertBar onAdd={(t) => addCell.mutate({ cellType: t, after: cell.position })} />
+                </div>
+              ))
+            )}
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+/** Hover affordance between cells — insert a code or text cell at this spot. */
+function InsertBar({ onAdd }: { onAdd: (t: "code" | "markdown") => void }) {
+  return (
+    <div className="group/insert relative flex h-7 items-center justify-center">
+      <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-slate-200 opacity-0 transition group-hover/insert:opacity-100" />
+      <div className="relative flex items-center gap-1.5 opacity-0 transition group-hover/insert:opacity-100">
+        <button onClick={() => onAdd("code")} className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-medium text-slate-500 shadow-sm transition hover:border-brand-300 hover:text-brand-700">
+          <Plus size={11} /> Code
+        </button>
+        <button onClick={() => onAdd("markdown")} className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-medium text-slate-500 shadow-sm transition hover:border-brand-300 hover:text-brand-700">
+          <Type size={11} /> Text
+        </button>
       </div>
     </div>
   );
