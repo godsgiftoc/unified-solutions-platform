@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   BarChart3,
   Check,
@@ -22,7 +22,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { Workspaces } from "@/lib/api";
+import { Notebooks, Workspaces } from "@/lib/api";
 import { useProject } from "@/lib/project";
 import { useTheme, type Theme } from "@/lib/theme";
 import { useToast } from "@/lib/toast";
@@ -40,6 +40,16 @@ const NAV = [
 
 export function TopNav() {
   const pathname = usePathname();
+  const { activeId } = useProject();
+
+  // "Notebooks" jumps straight into the most recently edited notebook (the list
+  // returns newest-first); if there are none, it falls back to the list page.
+  const notebooks = useQuery({
+    queryKey: ["notebooks", activeId],
+    queryFn: () => Notebooks.list(activeId),
+    enabled: !!activeId,
+  });
+  const notebooksHref = notebooks.data && notebooks.data.length > 0 ? `/notebooks/${notebooks.data[0].id}` : "/notebooks";
 
   return (
     <header className="sticky top-0 z-30 border-b border-white/10 bg-brand-950 text-white">
@@ -60,10 +70,11 @@ export function TopNav() {
         <nav aria-label="Primary" className="no-scrollbar flex min-w-0 flex-1 items-center gap-1 overflow-x-auto">
           {NAV.map(({ href, label, icon: Icon }) => {
             const active = pathname === href || pathname?.startsWith(href + "/");
+            const to = href === "/notebooks" ? notebooksHref : href;
             return (
               <Link
                 key={href}
-                href={href}
+                href={to}
                 className={`inline-flex shrink-0 items-center gap-2 rounded-lg px-3.5 py-2 text-sm transition ${
                   active ? "bg-white/15 font-semibold text-white" : "text-brand-100/70 hover:bg-white/10 hover:text-white"
                 }`}
