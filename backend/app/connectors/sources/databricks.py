@@ -25,8 +25,9 @@ register(
         fields=[
             ConnectorField(name="workspace_url", label="Workspace URL", type=FieldType.URL),
             ConnectorField(name="http_path", label="SQL warehouse HTTP path"),
-            ConnectorField(name="access_token", label="Access token",
-                           type=FieldType.PASSWORD, secret=True),
+            ConnectorField(
+                name="access_token", label="Access token", type=FieldType.PASSWORD, secret=True
+            ),
             ConnectorField(name="catalog_table", label="Catalog.schema.table"),
         ],
     )

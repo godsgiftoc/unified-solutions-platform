@@ -65,11 +65,17 @@ def _to_out(session: Session, ds: Dataset) -> DatasetOut:
     v = _version(session, ds)
     schema = svc.logical_schema(ds)
     return DatasetOut(
-        id=ds.id, workspace_id=ds.workspace_id, slug=ds.slug, name=ds.name,
-        kind=ds.kind.value, catalog=svc.CATALOG, schema_name=schema,
+        id=ds.id,
+        workspace_id=ds.workspace_id,
+        slug=ds.slug,
+        name=ds.name,
+        kind=ds.kind.value,
+        catalog=svc.CATALOG,
+        schema_name=schema,
         full_name=f"{svc.CATALOG}.{schema}.{ds.slug}",
         row_count=v.row_count_estimate if v else None,
-        column_count=len(v.schema) if v else 0, created_at=ds.created_at,
+        column_count=len(v.schema) if v else 0,
+        created_at=ds.created_at,
     )
 
 
@@ -98,7 +104,9 @@ def get_dataset(
     authorize_or_404(principal, Action.VIEW, ds)
     base = _to_out(session, ds)
     v = _version(session, ds)
-    return DatasetDetail(**base.model_dump(), columns=[ColumnOut(**c) for c in (v.schema if v else [])])
+    return DatasetDetail(
+        **base.model_dump(), columns=[ColumnOut(**c) for c in (v.schema if v else [])]
+    )
 
 
 @router.get("/{dataset_id}/preview")
@@ -139,9 +147,12 @@ async def upload_dataset(
         raise HTTPException(422, "File contains no rows.")
 
     ds = svc.create_raw_dataset_from_df(
-        session, workspace_id=workspace_id, owner_id=principal.user_id,
+        session,
+        workspace_id=workspace_id,
+        owner_id=principal.user_id,
         name=name or (file.filename or "Uploaded dataset").rsplit(".", 1)[0],
-        df=df, source_ref={"upload": file.filename},
+        df=df,
+        source_ref={"upload": file.filename},
     )
     session.flush()
     return _to_out(session, ds)
@@ -156,8 +167,11 @@ def create_sql_dataset(
     authorize_or_404(principal, Action.EDIT, WorkspaceRef(payload.workspace_id))
     try:
         ds = svc.create_sql_dataset(
-            session, workspace_id=payload.workspace_id, owner_id=principal.user_id,
-            name=payload.name, sql=payload.sql,
+            session,
+            workspace_id=payload.workspace_id,
+            owner_id=principal.user_id,
+            name=payload.name,
+            sql=payload.sql,
         )
     except engine.QueryError as exc:
         raise HTTPException(422, str(exc)) from exc
@@ -179,8 +193,12 @@ def create_from_records(
     if df.empty:
         raise HTTPException(422, "No rows to save.")
     ds = svc.create_raw_dataset_from_df(
-        session, workspace_id=payload.workspace_id, owner_id=principal.user_id,
-        name=payload.name, df=df, source_ref={"source": payload.source},
+        session,
+        workspace_id=payload.workspace_id,
+        owner_id=principal.user_id,
+        name=payload.name,
+        df=df,
+        source_ref={"source": payload.source},
     )
     session.flush()
     return _to_out(session, ds)

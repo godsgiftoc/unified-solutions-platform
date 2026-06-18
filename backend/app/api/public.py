@@ -43,7 +43,7 @@ def public_dashboard(token: str, session: Session = Depends(get_session)) -> Pub
     share = session.scalar(select(Share).where(Share.token_hash == token))
     if share is None or share.revoked_at is not None:
         raise HTTPException(404, "This link is invalid or has been revoked")
-    if share.expires_at is not None and share.expires_at < dt.datetime.now(dt.timezone.utc):
+    if share.expires_at is not None and share.expires_at < dt.datetime.now(dt.UTC):
         raise HTTPException(404, "This link has expired")
 
     d = session.get(Dashboard, share.dashboard_id)

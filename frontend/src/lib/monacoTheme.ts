@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // A near-black Monaco theme that matches the app's dark surfaces, so code
 // editors don't render as white cards in dark mode.
 export function defineUspDark(monaco: any) {

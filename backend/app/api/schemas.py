@@ -46,7 +46,7 @@ class ConnectionCreate(BaseModel):
     type: str
     name: str
     workspace_id: uuid.UUID
-    config: dict = Field(default_factory=dict)       # non-secret fields
+    config: dict = Field(default_factory=dict)  # non-secret fields
     secrets: dict[str, str] = Field(default_factory=dict)  # plaintext secret fields (write-only)
     schedule_cron: str | None = None
     sync_mode: str = "full"

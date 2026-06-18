@@ -47,8 +47,11 @@ class CommCareExtractor(BaseHttpExtractor):
     def test_connection(self) -> ConnectionTestResult:
         try:
             resp = self._get(self._api("form/"), params={"limit": 1})
-            return ConnectionTestResult(ok=True, message="Authenticated with CommCare HQ.",
-                                        details={"status": resp.status_code})
+            return ConnectionTestResult(
+                ok=True,
+                message="Authenticated with CommCare HQ.",
+                details={"status": resp.status_code},
+            )
         except httpx.HTTPError as exc:
             return ConnectionTestResult(ok=False, message=f"CommCare connection failed: {exc}")
 
@@ -98,14 +101,23 @@ register(
         supports_incremental=True,
         supports_schema_discovery=True,
         fields=[
-            ConnectorField(name="base_url", label="Base URL", type=FieldType.URL,
-                           placeholder="https://www.commcarehq.org"),
+            ConnectorField(
+                name="base_url",
+                label="Base URL",
+                type=FieldType.URL,
+                placeholder="https://www.commcarehq.org",
+            ),
             ConnectorField(name="app_slug", label="App / project slug"),
             ConnectorField(name="username", label="Username"),
-            ConnectorField(name="password", label="Password / API key",
-                           type=FieldType.PASSWORD, secret=True),
-            ConnectorField(name="form_ids", label="Form IDs (comma-separated)",
-                           required=False, help_text="Leave blank to sync all forms."),
+            ConnectorField(
+                name="password", label="Password / API key", type=FieldType.PASSWORD, secret=True
+            ),
+            ConnectorField(
+                name="form_ids",
+                label="Form IDs (comma-separated)",
+                required=False,
+                help_text="Leave blank to sync all forms.",
+            ),
         ],
         extractor_factory=lambda config: CommCareExtractor(config),
     )

@@ -40,7 +40,10 @@ def run_code(code: str) -> dict:
                 preexec_fn=_limits if os.name == "posix" else None,
             )
         except subprocess.TimeoutExpired:
-            return {"stdout": "", "outputs": [{"type": "error", "text": f"Timed out after {WALL_TIMEOUT}s"}]}
+            return {
+                "stdout": "",
+                "outputs": [{"type": "error", "text": f"Timed out after {WALL_TIMEOUT}s"}],
+            }
         if os.path.exists(out_path):
             try:
                 return json.loads(Path(out_path).read_text())

@@ -7,7 +7,7 @@ import Link from "next/link";
 import { memo, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 
-import { Datasets, Notebooks, type NotebookCell } from "@/lib/api";
+import { Datasets, Notebooks, type NotebookCell, type NotebookDetail } from "@/lib/api";
 import { downloadNotebook } from "@/lib/ipynb";
 import { useToast } from "@/lib/toast";
 import { useTheme } from "@/lib/theme";
@@ -252,7 +252,12 @@ function CellViewBase({ notebookId, cell }: { notebookId: string; cell: Notebook
       await Notebooks.updateCell(notebookId, cell.id, source);
       return Notebooks.runCell(notebookId, cell.id);
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["notebook", notebookId] }),
+    // Patch just this cell in the cache (no full refetch) so the page doesn't
+    // re-render every cell and jump when you run one.
+    onSuccess: (updated) =>
+      qc.setQueryData<NotebookDetail>(["notebook", notebookId], (old) =>
+        old ? { ...old, cells: old.cells.map((c) => (c.id === cell.id ? updated : c)) } : old,
+      ),
     onError: () => toast("Couldn't run the cell", "error"),
   });
   const del = useMutation({

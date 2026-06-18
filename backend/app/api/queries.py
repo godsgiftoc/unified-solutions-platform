@@ -38,7 +38,9 @@ class QueryOut(BaseModel):
 
 
 def _out(q: Query) -> QueryOut:
-    return QueryOut(id=q.id, workspace_id=q.workspace_id, name=q.name, sql=q.sql_text, created_at=q.created_at)
+    return QueryOut(
+        id=q.id, workspace_id=q.workspace_id, name=q.name, sql=q.sql_text, created_at=q.created_at
+    )
 
 
 @router.post("/run")
@@ -71,7 +73,12 @@ def save_query(
     session: Session = Depends(get_session),
 ) -> QueryOut:
     authorize_or_404(principal, Action.EDIT, WorkspaceRef(payload.workspace_id))
-    q = Query(workspace_id=payload.workspace_id, owner_id=principal.user_id, name=payload.name, sql_text=payload.sql)
+    q = Query(
+        workspace_id=payload.workspace_id,
+        owner_id=principal.user_id,
+        name=payload.name,
+        sql_text=payload.sql,
+    )
     session.add(q)
     session.flush()
     return _out(q)

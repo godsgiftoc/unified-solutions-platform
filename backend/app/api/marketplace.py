@@ -18,7 +18,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_principal, get_session
 from app.core.authorize import Principal
 from app.models.compute import Chart
-from app.models.dashboards import Dashboard, DashboardStatus, Tile
+from app.models.dashboards import Dashboard, DashboardStatus
 from app.models.platform import User, Workspace
 
 router = APIRouter(prefix="/marketplace", tags=["marketplace"])
@@ -60,12 +60,16 @@ def list_published(
         }
         items.append(
             MarketplaceItem(
-                id=d.id, title=d.title, description=d.description,
+                id=d.id,
+                title=d.title,
+                description=d.description,
                 owner_name=owner.full_name or owner.email if owner else None,
                 workspace_id=d.workspace_id,
                 workspace_name=ws.name if ws else None,
                 workspace_description=ws.description if ws else None,
-                tile_count=len(d.tiles), viz_types=sorted(viz), updated_at=d.updated_at,
+                tile_count=len(d.tiles),
+                viz_types=sorted(viz),
+                updated_at=d.updated_at,
             )
         )
     return items

@@ -45,8 +45,13 @@ class ChartOut(BaseModel):
 
 def _to_out(c: Chart) -> ChartOut:
     return ChartOut(
-        id=c.id, workspace_id=c.workspace_id, name=c.name, viz_type=c.viz_type,
-        sql=c.spec.get("sql", ""), spec=c.spec.get("encoding", {}), created_at=c.created_at,
+        id=c.id,
+        workspace_id=c.workspace_id,
+        name=c.name,
+        viz_type=c.viz_type,
+        sql=c.spec.get("sql", ""),
+        spec=c.spec.get("encoding", {}),
+        created_at=c.created_at,
     )
 
 
@@ -74,8 +79,11 @@ def create_chart(
     except engine.QueryError as exc:
         raise HTTPException(422, str(exc)) from exc
     chart = Chart(
-        workspace_id=payload.workspace_id, owner_id=principal.user_id, name=payload.name,
-        chart_kind=ChartKind.QUERY_CHART, viz_type=payload.viz_type,
+        workspace_id=payload.workspace_id,
+        owner_id=principal.user_id,
+        name=payload.name,
+        chart_kind=ChartKind.QUERY_CHART,
+        viz_type=payload.viz_type,
         spec={"sql": payload.sql, "encoding": payload.spec},
     )
     session.add(chart)

@@ -8,7 +8,6 @@ function toLines(s: string): string[] {
   return lines;
 }
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 function toOutputs(outs: CellOutput[], execCount: number | null): any[] {
   const result: any[] = [];
   for (const o of outs ?? []) {

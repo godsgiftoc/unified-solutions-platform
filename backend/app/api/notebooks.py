@@ -56,13 +56,24 @@ class UpdateCell(BaseModel):
 
 
 def _cell_out(c: NotebookCell) -> CellOut:
-    return CellOut(id=c.id, position=c.position, cell_type=c.cell_type.value,
-                   source=c.source, outputs=c.outputs or [], execution_count=c.execution_count)
+    return CellOut(
+        id=c.id,
+        position=c.position,
+        cell_type=c.cell_type.value,
+        source=c.source,
+        outputs=c.outputs or [],
+        execution_count=c.execution_count,
+    )
 
 
 def _nb_out(nb: Notebook) -> NotebookOut:
-    return NotebookOut(id=nb.id, workspace_id=nb.workspace_id, name=nb.name,
-                       updated_at=nb.updated_at, cell_count=len(nb.cells))
+    return NotebookOut(
+        id=nb.id,
+        workspace_id=nb.workspace_id,
+        name=nb.name,
+        updated_at=nb.updated_at,
+        cell_count=len(nb.cells),
+    )
 
 
 @router.get("", response_model=list[NotebookOut])
@@ -87,7 +98,9 @@ def create_notebook(
     nb = Notebook(workspace_id=payload.workspace_id, owner_id=principal.user_id, name=payload.name)
     session.add(nb)
     session.flush()
-    session.add(NotebookCell(notebook_id=nb.id, position=0, cell_type=CellType.CODE, source=STARTER))
+    session.add(
+        NotebookCell(notebook_id=nb.id, position=0, cell_type=CellType.CODE, source=STARTER)
+    )
     session.flush()
     session.refresh(nb)
     return NotebookDetail(**_nb_out(nb).model_dump(), cells=[_cell_out(c) for c in nb.cells])
@@ -141,8 +154,12 @@ def add_cell(
     if after is None:
         insert_idx = len(existing)
     else:
-        insert_idx = next((i + 1 for i, c in enumerate(existing) if c.position == after), len(existing))
-    cell = NotebookCell(notebook_id=nb.id, cell_type=CellType(cell_type), source="", position=insert_idx)
+        insert_idx = next(
+            (i + 1 for i, c in enumerate(existing) if c.position == after), len(existing)
+        )
+    cell = NotebookCell(
+        notebook_id=nb.id, cell_type=CellType(cell_type), source="", position=insert_idx
+    )
     session.add(cell)
 
     order = existing[:insert_idx] + [cell] + existing[insert_idx:]

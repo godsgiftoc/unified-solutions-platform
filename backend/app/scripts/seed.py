@@ -8,8 +8,8 @@ from __future__ import annotations
 
 from sqlalchemy import select
 
-from app.core.db import SessionLocal
 from app.core.authorize import Role
+from app.core.db import SessionLocal
 from app.models.platform import AuthProvider, Membership, User, Workspace
 
 DEV_EMAIL = "dev@local"
@@ -44,14 +44,15 @@ def main() -> None:
             session.flush()
             print("created workspace 'default'")
 
-        if session.scalar(
-            select(Membership).where(
-                Membership.user_id == user.id, Membership.workspace_id == ws.id
+        if (
+            session.scalar(
+                select(Membership).where(
+                    Membership.user_id == user.id, Membership.workspace_id == ws.id
+                )
             )
-        ) is None:
-            session.add(
-                Membership(user_id=user.id, workspace_id=ws.id, role=Role.WORKSPACE_ADMIN)
-            )
+            is None
+        ):
+            session.add(Membership(user_id=user.id, workspace_id=ws.id, role=Role.WORKSPACE_ADMIN))
             print("added membership (workspace_admin)")
 
         session.commit()

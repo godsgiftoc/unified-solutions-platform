@@ -98,11 +98,7 @@ def create_connection(
 
     if clean_secrets:
         wrapped, ciphertext = encrypt_secrets(clean_secrets)
-        session.add(
-            ConnectionSecret(
-                connection_id=conn.id, wrapped_dek=wrapped, fields=ciphertext
-            )
-        )
+        session.add(ConnectionSecret(connection_id=conn.id, wrapped_dek=wrapped, fields=ciphertext))
     return conn
 
 

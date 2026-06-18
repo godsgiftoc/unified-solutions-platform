@@ -58,7 +58,7 @@ class Connection(UUIDMixin, TimestampMixin, Base):
         Enum(FreshnessStatus, name="freshness_status"), default=FreshnessStatus.NEVER
     )
 
-    secret: Mapped["ConnectionSecret | None"] = relationship(
+    secret: Mapped[ConnectionSecret | None] = relationship(
         back_populates="connection", cascade="all, delete-orphan", uselist=False
     )
 

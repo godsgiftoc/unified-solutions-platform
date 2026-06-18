@@ -31,8 +31,18 @@ MONTHS = ["2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06"]
 
 
 def build_rows() -> tuple[list[str], list[list]]:
-    cols = ["month", "state", "lga", "facility", "anc_visits", "deliveries",
-            "immunization_rate", "malaria_cases", "stockout_days", "staff_count"]
+    cols = [
+        "month",
+        "state",
+        "lga",
+        "facility",
+        "anc_visits",
+        "deliveries",
+        "immunization_rate",
+        "malaria_cases",
+        "stockout_days",
+        "staff_count",
+    ]
     rows = []
     for state, lgas in STATES.items():
         for lga in lgas:
@@ -41,15 +51,20 @@ def build_rows() -> tuple[list[str], list[list]]:
             staff = random.randint(4, 22)
             for i, month in enumerate(MONTHS):
                 visits = max(0, int(base_visits + i * random.randint(-15, 35)))
-                rows.append([
-                    month, state, lga, facility,
-                    visits,
-                    int(visits * random.uniform(0.45, 0.75)),
-                    round(random.uniform(55, 96), 1),
-                    random.randint(0, 40),
-                    random.randint(0, 6),
-                    staff,
-                ])
+                rows.append(
+                    [
+                        month,
+                        state,
+                        lga,
+                        facility,
+                        visits,
+                        int(visits * random.uniform(0.45, 0.75)),
+                        round(random.uniform(55, 96), 1),
+                        random.randint(0, 40),
+                        random.randint(0, 6),
+                        staff,
+                    ]
+                )
     return cols, rows
 
 
@@ -64,25 +79,97 @@ def main() -> None:
         return
 
     cols, rows = build_rows()
-    ds = c.post(f"{API}/datasets/from-records", json={"workspace_id": ws, "name": "Health Facility Survey", "columns": cols, "rows": rows}).json()
+    ds = c.post(
+        f"{API}/datasets/from-records",
+        json={"workspace_id": ws, "name": "Health Facility Survey", "columns": cols, "rows": rows},
+    ).json()
     slug = ds["slug"]
     print(f"dataset: {ds['name']} ({ds['row_count']} rows) -> {slug}")
 
     def chart(name, viz, sql, x, y):
-        ch = c.post(f"{API}/charts", json={"workspace_id": ws, "name": name, "viz_type": viz, "sql": sql, "spec": {"x": x, "y": y}}).json()
+        ch = c.post(
+            f"{API}/charts",
+            json={
+                "workspace_id": ws,
+                "name": name,
+                "viz_type": viz,
+                "sql": sql,
+                "spec": {"x": x, "y": y},
+            },
+        ).json()
         return ch["id"]
 
     charts = {
-        "anc_trend": chart("ANC visits trend", "area", f"SELECT month, sum(anc_visits) AS anc_visits FROM {slug} GROUP BY month ORDER BY month", "month", "anc_visits"),
-        "deliveries_state": chart("Deliveries by state", "column", f"SELECT state, sum(deliveries) AS deliveries FROM {slug} GROUP BY state ORDER BY deliveries DESC", "state", "deliveries"),
-        "immun_state": chart("Immunization coverage by state", "bar", f"SELECT state, round(avg(immunization_rate),1) AS immunization_rate FROM {slug} GROUP BY state ORDER BY immunization_rate DESC", "state", "immunization_rate"),
-        "malaria_share": chart("Malaria cases share", "pie", f"SELECT state, sum(malaria_cases) AS malaria_cases FROM {slug} GROUP BY state", "state", "malaria_cases"),
-        "visits_vs_del": chart("ANC visits vs deliveries", "scatter", f"SELECT anc_visits, deliveries FROM {slug}", "anc_visits", "deliveries"),
-        "monthly_del": chart("Monthly deliveries", "line", f"SELECT month, sum(deliveries) AS deliveries FROM {slug} GROUP BY month ORDER BY month", "month", "deliveries"),
-        "facility_tbl": chart("Facility detail", "table", f"SELECT state, lga, facility, anc_visits, deliveries, malaria_cases FROM {slug} ORDER BY malaria_cases DESC LIMIT 50", "state", "anc_visits"),
-        "malaria_map": chart("Malaria cases by state (map)", "map", f"SELECT state, sum(malaria_cases) AS malaria_cases FROM {slug} GROUP BY state", "state", "malaria_cases"),
-        "bubble_lga": chart("ANC vs malaria by LGA (bubble)", "bubble", f"SELECT lga, sum(anc_visits) AS anc_visits FROM {slug} GROUP BY lga ORDER BY anc_visits DESC", "lga", "anc_visits"),
-        "immun_hist": chart("Immunization rate distribution", "histogram", f"SELECT immunization_rate FROM {slug}", "immunization_rate", "immunization_rate"),
+        "anc_trend": chart(
+            "ANC visits trend",
+            "area",
+            f"SELECT month, sum(anc_visits) AS anc_visits FROM {slug} GROUP BY month ORDER BY month",
+            "month",
+            "anc_visits",
+        ),
+        "deliveries_state": chart(
+            "Deliveries by state",
+            "column",
+            f"SELECT state, sum(deliveries) AS deliveries FROM {slug} GROUP BY state ORDER BY deliveries DESC",
+            "state",
+            "deliveries",
+        ),
+        "immun_state": chart(
+            "Immunization coverage by state",
+            "bar",
+            f"SELECT state, round(avg(immunization_rate),1) AS immunization_rate FROM {slug} GROUP BY state ORDER BY immunization_rate DESC",
+            "state",
+            "immunization_rate",
+        ),
+        "malaria_share": chart(
+            "Malaria cases share",
+            "pie",
+            f"SELECT state, sum(malaria_cases) AS malaria_cases FROM {slug} GROUP BY state",
+            "state",
+            "malaria_cases",
+        ),
+        "visits_vs_del": chart(
+            "ANC visits vs deliveries",
+            "scatter",
+            f"SELECT anc_visits, deliveries FROM {slug}",
+            "anc_visits",
+            "deliveries",
+        ),
+        "monthly_del": chart(
+            "Monthly deliveries",
+            "line",
+            f"SELECT month, sum(deliveries) AS deliveries FROM {slug} GROUP BY month ORDER BY month",
+            "month",
+            "deliveries",
+        ),
+        "facility_tbl": chart(
+            "Facility detail",
+            "table",
+            f"SELECT state, lga, facility, anc_visits, deliveries, malaria_cases FROM {slug} ORDER BY malaria_cases DESC LIMIT 50",
+            "state",
+            "anc_visits",
+        ),
+        "malaria_map": chart(
+            "Malaria cases by state (map)",
+            "map",
+            f"SELECT state, sum(malaria_cases) AS malaria_cases FROM {slug} GROUP BY state",
+            "state",
+            "malaria_cases",
+        ),
+        "bubble_lga": chart(
+            "ANC vs malaria by LGA (bubble)",
+            "bubble",
+            f"SELECT lga, sum(anc_visits) AS anc_visits FROM {slug} GROUP BY lga ORDER BY anc_visits DESC",
+            "lga",
+            "anc_visits",
+        ),
+        "immun_hist": chart(
+            "Immunization rate distribution",
+            "histogram",
+            f"SELECT immunization_rate FROM {slug}",
+            "immunization_rate",
+            "immunization_rate",
+        ),
     }
     print(f"created {len(charts)} SQL charts across viz types")
 
@@ -97,11 +184,20 @@ def main() -> None:
     )
     c.patch(f"{API}/notebooks/{nb['id']}/cells/{cell}", json={"source": code})
     c.post(f"{API}/notebooks/{nb['id']}/cells/{cell}/run")
-    nb_chart = next((x["id"] for x in c.get(f"{API}/charts?workspace_id={ws}").json() if x["name"] == "Top LGAs by malaria cases"), None)
+    nb_chart = next(
+        (
+            x["id"]
+            for x in c.get(f"{API}/charts?workspace_id={ws}").json()
+            if x["name"] == "Top LGAs by malaria cases"
+        ),
+        None,
+    )
     print("notebook chart:", "ok" if nb_chart else "missing")
 
     def dashboard(title, desc, tiles, publish):
-        d = c.post(f"{API}/dashboards", json={"workspace_id": ws, "title": title, "description": desc}).json()
+        d = c.post(
+            f"{API}/dashboards", json={"workspace_id": ws, "title": title, "description": desc}
+        ).json()
         for i, cid in enumerate(tiles):
             if not cid:
                 continue
@@ -109,12 +205,19 @@ def main() -> None:
             c.post(f"{API}/dashboards/{d['id']}/tiles", json={"chart_id": cid, "layout": layout})
         if publish:
             c.patch(f"{API}/dashboards/{d['id']}", json={"status": "published"})
-        print(f"dashboard: {title} ({'published' if publish else 'draft'}) — {len([t for t in tiles if t])} tiles")
+        print(
+            f"dashboard: {title} ({'published' if publish else 'draft'}) — {len([t for t in tiles if t])} tiles"
+        )
 
     dashboard(
         "Maternal & Child Health — National",
         "Antenatal care, deliveries, and facility performance across northern states.",
-        [charts["anc_trend"], charts["deliveries_state"], charts["monthly_del"], charts["visits_vs_del"]],
+        [
+            charts["anc_trend"],
+            charts["deliveries_state"],
+            charts["monthly_del"],
+            charts["visits_vs_del"],
+        ],
         publish=True,
     )
     dashboard(

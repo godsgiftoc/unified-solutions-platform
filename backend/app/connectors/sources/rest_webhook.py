@@ -28,12 +28,22 @@ register(
         description="Pull records from any JSON HTTP API via a JSON path.",
         fields=[
             ConnectorField(name="endpoint_url", label="Endpoint URL", type=FieldType.URL),
-            ConnectorField(name="auth_header", label="Auth header name", required=False,
-                           placeholder="Authorization"),
-            ConnectorField(name="auth_token", label="Token / API key",
-                           type=FieldType.PASSWORD, secret=True, required=False),
-            ConnectorField(name="json_path", label="JSON path to records",
-                           placeholder="$.data.results[*]"),
+            ConnectorField(
+                name="auth_header",
+                label="Auth header name",
+                required=False,
+                placeholder="Authorization",
+            ),
+            ConnectorField(
+                name="auth_token",
+                label="Token / API key",
+                type=FieldType.PASSWORD,
+                secret=True,
+                required=False,
+            ),
+            ConnectorField(
+                name="json_path", label="JSON path to records", placeholder="$.data.results[*]"
+            ),
         ],
     )
 )

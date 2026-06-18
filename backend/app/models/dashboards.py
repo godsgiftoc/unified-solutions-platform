@@ -29,7 +29,9 @@ class Dashboard(UUIDMixin, TimestampMixin, Base):
     slug: Mapped[str] = mapped_column(String(160))
     title: Mapped[str] = mapped_column(String(255))
     description: Mapped[str | None] = mapped_column(String(2000))
-    layout_config: Mapped[dict] = mapped_column(JSONB, default=dict)  # grid cols/rowHeight/breakpoints
+    layout_config: Mapped[dict] = mapped_column(
+        JSONB, default=dict
+    )  # grid cols/rowHeight/breakpoints
     default_filters: Mapped[dict] = mapped_column(JSONB, default=dict)
     status: Mapped[DashboardStatus] = mapped_column(
         Enum(DashboardStatus, name="dashboard_status"), default=DashboardStatus.DRAFT
@@ -38,11 +40,13 @@ class Dashboard(UUIDMixin, TimestampMixin, Base):
     created_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id"))
     updated_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id"))
 
-    tiles: Mapped[list["Tile"]] = relationship(
+    tiles: Mapped[list[Tile]] = relationship(
         back_populates="dashboard", cascade="all, delete-orphan", order_by="Tile.position"
     )
-    filters: Mapped[list["DashboardFilter"]] = relationship(
-        back_populates="dashboard", cascade="all, delete-orphan", order_by="DashboardFilter.position"
+    filters: Mapped[list[DashboardFilter]] = relationship(
+        back_populates="dashboard",
+        cascade="all, delete-orphan",
+        order_by="DashboardFilter.position",
     )
 
 

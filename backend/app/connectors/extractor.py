@@ -17,10 +17,10 @@ from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_ex
 
 @dataclass
 class StreamSchema:
-    name: str                                # logical entity, e.g. "form_submissions"
-    json_schema: dict                        # inferred/declared JSON Schema of a record
+    name: str  # logical entity, e.g. "form_submissions"
+    json_schema: dict  # inferred/declared JSON Schema of a record
     primary_key: list[str] | None = None
-    cursor_field: str | None = None          # field used for incremental
+    cursor_field: str | None = None  # field used for incremental
     supports_incremental: bool = False
 
 

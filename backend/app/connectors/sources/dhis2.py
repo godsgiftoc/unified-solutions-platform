@@ -29,8 +29,7 @@ register(
         fields=[
             ConnectorField(name="base_url", label="Base URL", type=FieldType.URL),
             ConnectorField(name="username", label="Username"),
-            ConnectorField(name="password", label="Password",
-                           type=FieldType.PASSWORD, secret=True),
+            ConnectorField(name="password", label="Password", type=FieldType.PASSWORD, secret=True),
             ConnectorField(name="org_unit", label="Org unit (UID)"),
             ConnectorField(name="dataset", label="Dataset / Program (UID)"),
         ],

@@ -44,6 +44,9 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
+# B008: FastAPI `Depends()` defaults are idiomatic. E501: the formatter owns line
+# width (and won't split strings). UP042: StrEnum migration is optional.
+ignore = ["B008", "E501", "UP042"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

@@ -4,14 +4,13 @@ from __future__ import annotations
 
 import datetime as dt
 import re
+import secrets
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-
-import secrets
 
 from app.api.deps import WorkspaceRef, authorize_or_404, get_principal, get_session
 from app.core.authorize import Action, Principal, scoped
@@ -87,12 +86,23 @@ class LayoutItem(BaseModel):
 
 def _out(session: Session, d: Dashboard) -> DashboardOut:
     viz = sorted(
-        {c.viz_type for t in d.tiles if t.chart_id and (c := session.get(Chart, t.chart_id)) is not None}
+        {
+            c.viz_type
+            for t in d.tiles
+            if t.chart_id and (c := session.get(Chart, t.chart_id)) is not None
+        }
     )
     return DashboardOut(
-        id=d.id, workspace_id=d.workspace_id, slug=d.slug, title=d.title,
-        description=d.description, status=d.status.value, version=d.version,
-        tile_count=len(d.tiles), viz_types=viz, updated_at=d.updated_at,
+        id=d.id,
+        workspace_id=d.workspace_id,
+        slug=d.slug,
+        title=d.title,
+        description=d.description,
+        status=d.status.value,
+        version=d.version,
+        tile_count=len(d.tiles),
+        viz_types=viz,
+        updated_at=d.updated_at,
     )
 
 
@@ -105,7 +115,9 @@ def list_dashboards(
     stmt = scoped(select(Dashboard), Dashboard.workspace_id, principal)
     if workspace_id:
         stmt = stmt.where(Dashboard.workspace_id == workspace_id)
-    return [_out(session, d) for d in session.scalars(stmt.order_by(Dashboard.updated_at.desc())).all()]
+    return [
+        _out(session, d) for d in session.scalars(stmt.order_by(Dashboard.updated_at.desc())).all()
+    ]
 
 
 @router.post("", response_model=DashboardOut, status_code=status.HTTP_201_CREATED)
@@ -116,9 +128,12 @@ def create_dashboard(
 ) -> DashboardOut:
     authorize_or_404(principal, Action.EDIT, WorkspaceRef(payload.workspace_id))
     d = Dashboard(
-        workspace_id=payload.workspace_id, slug=_slug(session, payload.workspace_id, payload.title),
-        title=payload.title, description=payload.description,
-        created_by=principal.user_id, updated_by=principal.user_id,
+        workspace_id=payload.workspace_id,
+        slug=_slug(session, payload.workspace_id, payload.title),
+        title=payload.title,
+        description=payload.description,
+        created_by=principal.user_id,
+        updated_by=principal.user_id,
         layout_config={"cols": 12, "rowHeight": 40},
     )
     session.add(d)
@@ -141,8 +156,11 @@ def get_dashboard(
         chart = session.get(Chart, t.chart_id) if t.chart_id else None
         tiles.append(
             TileOut(
-                id=t.id, chart_id=t.chart_id, title=t.title or (chart.name if chart else None),
-                layout=t.layout, viz_type=chart.viz_type if chart else None,
+                id=t.id,
+                chart_id=t.chart_id,
+                title=t.title or (chart.name if chart else None),
+                layout=t.layout,
+                viz_type=chart.viz_type if chart else None,
                 sql=chart.spec.get("sql") if chart else None,
                 encoding=chart.spec.get("encoding") if chart else None,
             )
@@ -190,15 +208,25 @@ def add_tile(
     pos = len(d.tiles)
     layout = payload.layout or {"x": (pos * 4) % 12, "y": 999, "w": 4, "h": 6}
     tile = Tile(
-        dashboard_id=d.id, tile_type=TileType.CHART, chart_id=chart.id,
-        title=payload.title or chart.name, layout=layout, position=pos,
+        dashboard_id=d.id,
+        tile_type=TileType.CHART,
+        chart_id=chart.id,
+        title=payload.title or chart.name,
+        layout=layout,
+        position=pos,
     )
     session.add(tile)
     d.version += 1
     session.flush()
-    return TileOut(id=tile.id, chart_id=chart.id, title=tile.title, layout=tile.layout,
-                   viz_type=chart.viz_type, sql=chart.spec.get("sql"),
-                   encoding=chart.spec.get("encoding"))
+    return TileOut(
+        id=tile.id,
+        chart_id=chart.id,
+        title=tile.title,
+        layout=tile.layout,
+        viz_type=chart.viz_type,
+        sql=chart.spec.get("sql"),
+        encoding=chart.spec.get("encoding"),
+    )
 
 
 @router.put("/{dashboard_id}/layout", response_model=DashboardOut)
@@ -277,7 +305,9 @@ def get_share(
         raise HTTPException(404, "Dashboard not found")
     authorize_or_404(principal, Action.VIEW, d)
     share = _active_share(session, dashboard_id)
-    return ShareOut(token=share.token_hash, url_path=f"/share/{share.token_hash}") if share else None
+    return (
+        ShareOut(token=share.token_hash, url_path=f"/share/{share.token_hash}") if share else None
+    )
 
 
 @router.post("/{dashboard_id}/share", response_model=ShareOut)
@@ -297,7 +327,9 @@ def create_share(
         # A hardened deployment should store only a hash and compare on lookup.
         token = secrets.token_urlsafe(24)
         share = Share(
-            dashboard_id=dashboard_id, token_hash=token, access="view",
+            dashboard_id=dashboard_id,
+            token_hash=token,
+            access="view",
             created_by=principal.user_id,
         )
         session.add(share)
@@ -317,4 +349,4 @@ def revoke_share(
     authorize_or_404(principal, Action.EDIT, d)
     share = _active_share(session, dashboard_id)
     if share is not None:
-        share.revoked_at = dt.datetime.now(dt.timezone.utc)
+        share.revoked_at = dt.datetime.now(dt.UTC)

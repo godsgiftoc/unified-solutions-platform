@@ -32,8 +32,15 @@ _db: duckdb.DuckDBPyConnection | None = None
 MAX_ROWS = 5000
 
 _FORBIDDEN = (
-    exp.Insert, exp.Update, exp.Delete, exp.Create, exp.Drop,
-    exp.Alter, exp.Command, exp.Copy, exp.Set,
+    exp.Insert,
+    exp.Update,
+    exp.Delete,
+    exp.Create,
+    exp.Drop,
+    exp.Alter,
+    exp.Command,
+    exp.Copy,
+    exp.Set,
 )
 
 

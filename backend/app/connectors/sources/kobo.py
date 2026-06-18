@@ -23,11 +23,16 @@ register(
         subtitle="KoboToolbox API",
         description="Sync submissions from a KoboToolbox asset.",
         fields=[
-            ConnectorField(name="server_url", label="Server URL", type=FieldType.URL,
-                           placeholder="https://kf.kobotoolbox.org"),
+            ConnectorField(
+                name="server_url",
+                label="Server URL",
+                type=FieldType.URL,
+                placeholder="https://kf.kobotoolbox.org",
+            ),
             ConnectorField(name="asset_uid", label="Asset / Form UID"),
-            ConnectorField(name="api_token", label="API token",
-                           type=FieldType.PASSWORD, secret=True),
+            ConnectorField(
+                name="api_token", label="API token", type=FieldType.PASSWORD, secret=True
+            ),
         ],
     )
 )

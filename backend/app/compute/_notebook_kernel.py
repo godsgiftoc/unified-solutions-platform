@@ -38,7 +38,9 @@ def load_dataset(slug: str, limit: int = 100000):
         with urllib.request.urlopen(req, timeout=30) as resp:  # noqa: S310
             payload = json.loads(resp.read())
     except urllib.error.HTTPError as exc:
-        raise RuntimeError(f"Could not load dataset '{slug}': {exc.read().decode()[:200]}") from None
+        raise RuntimeError(
+            f"Could not load dataset '{slug}': {exc.read().decode()[:200]}"
+        ) from None
     return pd.DataFrame(payload["rows"], columns=payload["columns"])
 
 
@@ -63,7 +65,16 @@ def _records(df):
 def save_dataset(df, name: str) -> str:
     """Persist a DataFrame as a queryable dataset. Returns its slug."""
     cols, rows = _records(df)
-    ds = _post("/datasets/from-records", {"workspace_id": WORKSPACE_ID, "name": name, "columns": cols, "rows": rows, "source": "notebook"})
+    ds = _post(
+        "/datasets/from-records",
+        {
+            "workspace_id": WORKSPACE_ID,
+            "name": name,
+            "columns": cols,
+            "rows": rows,
+            "source": "notebook",
+        },
+    )
     print(f"✓ Saved dataset '{ds['name']}' ({ds['row_count']} rows) — query it as: {ds['slug']}")
     return ds["slug"]
 
@@ -76,7 +87,13 @@ def save_chart(df, name: str, kind: str = "bar", x: str | None = None, y: str | 
     y = y or (cols[1] if len(cols) > 1 else cols[0])
     ch = _post(
         "/charts",
-        {"workspace_id": WORKSPACE_ID, "name": name, "sql": f'SELECT * FROM "{slug}"', "viz_type": kind, "spec": {"x": x, "y": y}},
+        {
+            "workspace_id": WORKSPACE_ID,
+            "name": name,
+            "sql": f'SELECT * FROM "{slug}"',
+            "viz_type": kind,
+            "spec": {"x": x, "y": y},
+        },
     )
     print(f"✓ Saved chart '{ch['name']}' ({kind}) — add it from the Dashboards page")
     return ch["id"]
@@ -108,7 +125,9 @@ def _preprocess(code: str) -> str:
     for ln in code.splitlines():
         stripped = ln.lstrip()
         indent = ln[: len(ln) - len(stripped)]
-        if stripped.startswith("!") or (stripped.startswith("%") and stripped[1:].lstrip().startswith("pip")):
+        if stripped.startswith("!") or (
+            stripped.startswith("%") and stripped[1:].lstrip().startswith("pip")
+        ):
             cmd = stripped.lstrip("!% ").replace('"""', '\\"\\"\\"')
             out.append(f'{indent}__usp_bang__(r"""{cmd}""")')
         elif stripped.startswith("%"):

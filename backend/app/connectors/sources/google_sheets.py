@@ -25,8 +25,12 @@ register(
         fields=[
             ConnectorField(name="spreadsheet_id", label="Spreadsheet ID"),
             ConnectorField(name="sheet_name", label="Sheet / tab name"),
-            ConnectorField(name="service_account_json", label="Service-account JSON",
-                           type=FieldType.TEXTAREA, secret=True),
+            ConnectorField(
+                name="service_account_json",
+                label="Service-account JSON",
+                type=FieldType.TEXTAREA,
+                secret=True,
+            ),
         ],
     )
 )

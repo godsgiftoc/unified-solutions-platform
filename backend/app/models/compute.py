@@ -24,8 +24,8 @@ from app.models.base import TimestampMixin, UUIDMixin
 
 
 class DatasetKind(str, enum.Enum):
-    RAW = "raw"          # produced by ingestion
-    SQL = "sql"          # saved SQL query/view
+    RAW = "raw"  # produced by ingestion
+    SQL = "sql"  # saved SQL query/view
     NOTEBOOK = "notebook"  # materialized notebook output
 
 
@@ -47,8 +47,10 @@ class Dataset(UUIDMixin, TimestampMixin, Base):
     tags: Mapped[list] = mapped_column(JSONB, default=list)
     source_ref: Mapped[dict] = mapped_column(JSONB, default=dict)  # ingestion/notebook provenance
 
-    versions: Mapped[list["DatasetVersion"]] = relationship(
-        back_populates="dataset", cascade="all, delete-orphan", foreign_keys="DatasetVersion.dataset_id"
+    versions: Mapped[list[DatasetVersion]] = relationship(
+        back_populates="dataset",
+        cascade="all, delete-orphan",
+        foreign_keys="DatasetVersion.dataset_id",
     )
 
 
@@ -154,7 +156,7 @@ class Notebook(UUIDMixin, TimestampMixin, Base):
     )
     last_active_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
 
-    cells: Mapped[list["NotebookCell"]] = relationship(
+    cells: Mapped[list[NotebookCell]] = relationship(
         back_populates="notebook", cascade="all, delete-orphan", order_by="NotebookCell.position"
     )
 

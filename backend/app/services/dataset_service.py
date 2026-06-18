@@ -152,7 +152,9 @@ def backfill_schema_views(session: Session) -> int:
     """Ensure every dataset has its <schema>.<slug> view (run at startup)."""
     n = 0
     for ds in session.scalars(select(Dataset)).all():
-        version = session.get(DatasetVersion, ds.current_version_id) if ds.current_version_id else None
+        version = (
+            session.get(DatasetVersion, ds.current_version_id) if ds.current_version_id else None
+        )
         if not version or not version.physical_uri:
             continue
         try:

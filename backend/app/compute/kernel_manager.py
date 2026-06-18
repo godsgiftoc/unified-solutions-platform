@@ -65,11 +65,19 @@ def run(notebook_id: str, code: str, workspace_id: str | None = None) -> dict:
         if not ready:
             proc.kill()
             _kernels.pop(notebook_id, None)
-            return {"stdout": "", "outputs": [{"type": "error", "text": f"Timed out after {_TIMEOUT}s — kernel restarted"}]}
+            return {
+                "stdout": "",
+                "outputs": [
+                    {"type": "error", "text": f"Timed out after {_TIMEOUT}s — kernel restarted"}
+                ],
+            }
         line = proc.stdout.readline()
         if not line:
             _kernels.pop(notebook_id, None)
-            return {"stdout": "", "outputs": [{"type": "error", "text": "Kernel exited unexpectedly"}]}
+            return {
+                "stdout": "",
+                "outputs": [{"type": "error", "text": "Kernel exited unexpectedly"}],
+            }
         try:
             return json.loads(line)
         except json.JSONDecodeError:

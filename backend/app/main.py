@@ -61,8 +61,17 @@ app.add_middleware(
 
 API_PREFIX = "/api/v1"
 for module in (
-    auth, workspaces, connectors, connections,
-    datasets, queries, charts, dashboards, marketplace, notebooks, public,
+    auth,
+    workspaces,
+    connectors,
+    connections,
+    datasets,
+    queries,
+    charts,
+    dashboards,
+    marketplace,
+    notebooks,
+    public,
 ):
     app.include_router(module.router, prefix=API_PREFIX)
 

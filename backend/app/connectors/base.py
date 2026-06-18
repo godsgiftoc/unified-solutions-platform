@@ -28,8 +28,8 @@ class FieldType(str, enum.Enum):
 
 
 class Kind(str, enum.Enum):
-    NATIVE = "native"   # has a working extractor → sync supported
-    CONFIG = "config"   # persists settings only → "coming soon"
+    NATIVE = "native"  # has a working extractor → sync supported
+    CONFIG = "config"  # persists settings only → "coming soon"
 
 
 class Maturity(str, enum.Enum):
@@ -54,18 +54,18 @@ class ConnectorField(BaseModel):
     required: bool = True
     help_text: str | None = None
     placeholder: str | None = None
-    options: list[str] | None = None              # SELECT / MULTISELECT
-    depends_on: dict[str, str] | None = None       # conditional display: {field: value}
+    options: list[str] | None = None  # SELECT / MULTISELECT
+    depends_on: dict[str, str] | None = None  # conditional display: {field: value}
 
 
 class ConnectorDefinition(BaseModel):
-    type: str                       # stable key, e.g. "dhis2"
-    name: str                       # display name
+    type: str  # stable key, e.g. "dhis2"
+    name: str  # display name
     kind: Kind
     category: Category
     maturity: Maturity = Maturity.BETA
-    icon: str                       # icon key the frontend maps to an asset
-    subtitle: str                   # short gallery-card line, e.g. "National HMIS"
+    icon: str  # icon key the frontend maps to an asset
+    subtitle: str  # short gallery-card line, e.g. "National HMIS"
     description: str = ""
     fields: list[ConnectorField] = Field(default_factory=list)
     supports_incremental: bool = False

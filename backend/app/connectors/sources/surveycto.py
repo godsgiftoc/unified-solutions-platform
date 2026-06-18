@@ -26,8 +26,7 @@ register(
             ConnectorField(name="server_name", label="Server name"),
             ConnectorField(name="form_id", label="Form ID"),
             ConnectorField(name="username", label="Username (email)"),
-            ConnectorField(name="password", label="Password",
-                           type=FieldType.PASSWORD, secret=True),
+            ConnectorField(name="password", label="Password", type=FieldType.PASSWORD, secret=True),
         ],
     )
 )

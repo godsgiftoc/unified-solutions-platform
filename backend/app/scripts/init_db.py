@@ -9,8 +9,8 @@ Run with: ``python -m app.scripts.init_db``
 
 from __future__ import annotations
 
-from app.core.db import Base, engine
 import app.models  # noqa: F401  (registers all tables on Base.metadata)
+from app.core.db import Base, engine
 
 
 def main() -> None:

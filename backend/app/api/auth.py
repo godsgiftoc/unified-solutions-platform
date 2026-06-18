@@ -63,15 +63,11 @@ def me(
     principal: Principal = Depends(get_principal), session: Session = Depends(get_session)
 ) -> MeOut:
     user = session.get(User, principal.user_id)
-    rows = session.scalars(
-        select(Membership).where(Membership.user_id == principal.user_id)
-    ).all()
+    rows = session.scalars(select(Membership).where(Membership.user_id == principal.user_id)).all()
     return MeOut(
         user_id=str(user.id),
         email=user.email,
         full_name=user.full_name,
         is_org_admin=user.is_org_admin,
-        memberships=[
-            {"workspace_id": str(m.workspace_id), "role": m.role.value} for m in rows
-        ],
+        memberships=[{"workspace_id": str(m.workspace_id), "role": m.role.value} for m in rows],
     )

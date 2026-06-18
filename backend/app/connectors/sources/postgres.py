@@ -48,16 +48,17 @@ class PostgresExtractor:
             with self._connect() as conn, conn.cursor() as cur:
                 cur.execute("SELECT version()")
                 version = cur.fetchone()[0]
-            return ConnectionTestResult(ok=True, message="Connected to PostgreSQL.",
-                                        details={"server": version.split(",")[0]})
+            return ConnectionTestResult(
+                ok=True,
+                message="Connected to PostgreSQL.",
+                details={"server": version.split(",")[0]},
+            )
         except Exception as exc:  # noqa: BLE001 - surface any driver error to the UI
             return ConnectionTestResult(ok=False, message=f"Connection failed: {exc}")
 
     def discover_schema(self) -> list[StreamSchema]:
         if not self.table:
             return []
-        import psycopg
-        from psycopg import sql
 
         schema_name, _, tbl = self.table.rpartition(".")
         schema_name = schema_name or "public"
@@ -72,7 +73,9 @@ class PostgresExtractor:
                 (schema_name, tbl),
             )
             props = {name: {"type": _pg_to_json(dtype)} for name, dtype in cur.fetchall()}
-        return [StreamSchema(name=tbl or "rows", json_schema={"type": "object", "properties": props})]
+        return [
+            StreamSchema(name=tbl or "rows", json_schema={"type": "object", "properties": props})
+        ]
 
     def read(
         self, streams: list[str] | None = None, state: SyncState | None = None
@@ -114,16 +117,28 @@ register(
         supports_schema_discovery=True,
         fields=[
             ConnectorField(name="host", label="Host", placeholder="db.example.org"),
-            ConnectorField(name="port", label="Port", type=FieldType.NUMBER,
-                           required=False, placeholder="5432"),
+            ConnectorField(
+                name="port", label="Port", type=FieldType.NUMBER, required=False, placeholder="5432"
+            ),
             ConnectorField(name="database", label="Database"),
             ConnectorField(name="username", label="Username"),
-            ConnectorField(name="password", label="Password",
-                           type=FieldType.PASSWORD, secret=True, required=False),
-            ConnectorField(name="table", label="Table (schema.table)",
-                           placeholder="public.my_table"),
-            ConnectorField(name="sslmode", label="SSL mode", type=FieldType.SELECT,
-                           required=False, options=["disable", "require", "verify-full"]),
+            ConnectorField(
+                name="password",
+                label="Password",
+                type=FieldType.PASSWORD,
+                secret=True,
+                required=False,
+            ),
+            ConnectorField(
+                name="table", label="Table (schema.table)", placeholder="public.my_table"
+            ),
+            ConnectorField(
+                name="sslmode",
+                label="SSL mode",
+                type=FieldType.SELECT,
+                required=False,
+                options=["disable", "require", "verify-full"],
+            ),
         ],
         extractor_factory=lambda config: PostgresExtractor(config),
     )

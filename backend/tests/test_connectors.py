@@ -6,8 +6,16 @@ from app.connectors import all_definitions, get
 from app.connectors.base import Kind
 
 EXPECTED_TYPES = {
-    "commcare", "csv_upload", "kobo", "odk", "dhis2",
-    "surveycto", "gsheets", "gdrive", "databricks", "rest",
+    "commcare",
+    "csv_upload",
+    "kobo",
+    "odk",
+    "dhis2",
+    "surveycto",
+    "gsheets",
+    "gdrive",
+    "databricks",
+    "rest",
 }
 
 

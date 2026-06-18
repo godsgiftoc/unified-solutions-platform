@@ -55,9 +55,7 @@ def configure_logging(*, json_logs: bool = True, level: int = logging.INFO) -> N
         redact_processor,  # redaction runs before rendering
     ]
     processors.append(
-        structlog.processors.JSONRenderer()
-        if json_logs
-        else structlog.dev.ConsoleRenderer()
+        structlog.processors.JSONRenderer() if json_logs else structlog.dev.ConsoleRenderer()
     )
     structlog.configure(
         processors=processors,

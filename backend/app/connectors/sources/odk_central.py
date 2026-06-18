@@ -27,8 +27,7 @@ register(
             ConnectorField(name="project_id", label="Project ID"),
             ConnectorField(name="form_id", label="Form ID (xmlFormId)"),
             ConnectorField(name="email", label="Web-user email"),
-            ConnectorField(name="password", label="Password",
-                           type=FieldType.PASSWORD, secret=True),
+            ConnectorField(name="password", label="Password", type=FieldType.PASSWORD, secret=True),
         ],
     )
 )

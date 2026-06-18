@@ -30,7 +30,7 @@ class SecretBox:
         if not kek_keys or not kek_keys[0]:
             raise ValueError(
                 "USP_MASTER_KEY is not set. Generate one with: "
-                "python -c \"from cryptography.fernet import Fernet; "
+                'python -c "from cryptography.fernet import Fernet; '
                 'print(Fernet.generate_key().decode())"'
             )
         self._kek = MultiFernet([Fernet(k.encode()) for k in kek_keys])
@@ -57,7 +57,9 @@ class SecretBox:
         dek, wrapped = self.new_dek()
         return wrapped, {k: self.encrypt_field(dek, v) for k, v in plaintext_fields.items()}
 
-    def decrypt_fields(self, wrapped_dek: bytes, ciphertext_fields: dict[str, str]) -> dict[str, str]:
+    def decrypt_fields(
+        self, wrapped_dek: bytes, ciphertext_fields: dict[str, str]
+    ) -> dict[str, str]:
         f = self._unwrap(wrapped_dek)
         return {k: f.decrypt(v.encode()).decode() for k, v in ciphertext_fields.items()}
 

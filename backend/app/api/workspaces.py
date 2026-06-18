@@ -64,10 +64,14 @@ def create_workspace(
     while session.scalar(select(Workspace.id).where(Workspace.slug == slug)):
         n += 1
         slug = f"{base}-{n}"
-    ws = Workspace(slug=slug, name=payload.name, description=payload.description, created_by=principal.user_id)
+    ws = Workspace(
+        slug=slug, name=payload.name, description=payload.description, created_by=principal.user_id
+    )
     session.add(ws)
     session.flush()
-    session.add(Membership(user_id=principal.user_id, workspace_id=ws.id, role=Role.WORKSPACE_ADMIN))
+    session.add(
+        Membership(user_id=principal.user_id, workspace_id=ws.id, role=Role.WORKSPACE_ADMIN)
+    )
     session.flush()
     item = WorkspaceOut.model_validate(ws)
     item.role = "workspace_admin"

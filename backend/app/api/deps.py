@@ -18,9 +18,7 @@ DEV_USER_EMAIL = "dev@local"
 
 
 def _principal_from_user(session: Session, user: User) -> Principal:
-    memberships = session.scalars(
-        select(Membership).where(Membership.user_id == user.id)
-    ).all()
+    memberships = session.scalars(select(Membership).where(Membership.user_id == user.id)).all()
     return Principal(
         user_id=user.id,
         is_org_admin=user.is_org_admin,
@@ -28,9 +26,7 @@ def _principal_from_user(session: Session, user: User) -> Principal:
     )
 
 
-def get_principal(
-    request: Request, session: Session = Depends(get_session)
-) -> Principal:
+def get_principal(request: Request, session: Session = Depends(get_session)) -> Principal:
     """Resolve the caller from the signed session cookie.
 
     In development, falls back to the seeded ``dev@local`` user so the app is

@@ -24,10 +24,18 @@ register(
         description="Sync files from a Drive folder or shared drive.",
         fields=[
             ConnectorField(name="folder_id", label="Folder / Shared-Drive ID"),
-            ConnectorField(name="file_filter", label="File type", type=FieldType.SELECT,
-                           options=["Google Sheets", "CSV", "Excel"]),
-            ConnectorField(name="service_account_json", label="Service-account JSON",
-                           type=FieldType.TEXTAREA, secret=True),
+            ConnectorField(
+                name="file_filter",
+                label="File type",
+                type=FieldType.SELECT,
+                options=["Google Sheets", "CSV", "Excel"],
+            ),
+            ConnectorField(
+                name="service_account_json",
+                label="Service-account JSON",
+                type=FieldType.TEXTAREA,
+                secret=True,
+            ),
         ],
     )
 )
