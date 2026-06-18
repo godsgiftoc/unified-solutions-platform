@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Unified Solutions Platform — Architecture</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  :root{
+    --b-950:#082a4d; --b-900:#0b3d70; --b-800:#0e5298;
+    --b-700:#1573c0; --b-500:#29abe2; --b-100:#e3f0fb; --b-50:#f1f7fc;
+    --ink:#14233a; --muted:#5b6b80; --line:#d6e3f0; --card:#ffffff;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--b-50); color:var(--ink); -webkit-font-smoothing:antialiased;
+  }
+  header{
+    background:linear-gradient(135deg,var(--b-950),var(--b-700));
+    color:#fff; padding:40px 48px 34px;
+  }
+  header h1{margin:0 0 6px; font-size:30px; letter-spacing:-.3px}
+  header p{margin:0; opacity:.92; font-size:15px}
+  header .tag{
+    display:inline-block; margin-top:16px; padding:7px 14px; border-radius:999px;
+    background:rgba(255,255,255,.16); font-size:13px; font-weight:600;
+  }
+  main{max-width:1180px; margin:0 auto; padding:32px 24px 64px}
+  section{
+    background:var(--card); border:1px solid var(--line); border-radius:16px;
+    padding:26px 28px; margin:22px 0; box-shadow:0 1px 3px rgba(11,61,112,.06);
+  }
+  section h2{
+    margin:0 0 4px; font-size:19px; color:var(--b-800);
+    display:flex; align-items:center; gap:10px;
+  }
+  section h2 .num{
+    width:26px;height:26px;border-radius:8px;background:var(--b-100);
+    color:var(--b-700); font-size:14px; display:grid; place-items:center; font-weight:700;
+  }
+  section .sub{margin:2px 0 18px 36px; color:var(--muted); font-size:14px}
+  .mermaid{display:flex; justify-content:center; overflow-x:auto}
+  .legend{display:flex; flex-wrap:wrap; gap:10px; margin-top:18px}
+  .chip{
+    font-size:12.5px; padding:6px 12px; border-radius:8px; border:1px solid var(--line);
+    background:var(--b-50); color:var(--b-800); font-weight:600;
+  }
+  footer{text-align:center; color:var(--muted); font-size:13px; padding:8px 0 40px}
+  .print{
+    position:fixed; right:18px; bottom:18px; background:var(--b-700); color:#fff;
+    border:none; padding:11px 16px; border-radius:10px; font-size:14px; font-weight:600;
+    cursor:pointer; box-shadow:0 4px 14px rgba(11,61,112,.3);
+  }
+  @media print{.print{display:none} header{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+
+  /* ---- Hand-built layered architecture (crisp, controlled layout) ---- */
+  .arch{display:flex; flex-direction:column}
+  .layer{border:1.5px solid var(--line); border-radius:14px; padding:13px 15px}
+  .layer .lhead{
+    font-size:11.5px; font-weight:800; letter-spacing:.04em; color:var(--b-800);
+    text-transform:uppercase; margin-bottom:11px;
+  }
+  .layer .lhead em{font-style:normal; font-weight:600; text-transform:none; color:var(--muted); letter-spacing:0}
+  .brow{display:grid; grid-template-columns:repeat(auto-fit,minmax(118px,1fr)); gap:9px}
+  .box{
+    background:#fff; border:1.5px solid var(--line); border-radius:10px; padding:11px 9px;
+    text-align:center; font-size:13px; font-weight:600; color:var(--ink);
+    box-shadow:0 1px 2px rgba(11,61,112,.05);
+  }
+  .box small{display:block; font-weight:500; color:var(--muted); font-size:11px; margin-top:2px}
+  .layer-ui{background:#eef4fb}
+  .layer-api{background:#e3f0fb; border-color:#bcd5ee}
+  .layer-work{background:#f4f8fc}
+  .layer-store{background:#eef4fb}
+  .layer-src{background:#fbfdff}
+  .box-store{background:#dcebf8}
+  .srcrow{display:flex; flex-wrap:wrap; gap:7px}
+  .src{
+    background:#fff; border:1.5px solid var(--line); border-radius:999px; padding:6px 12px;
+    font-size:12px; font-weight:600; color:var(--b-800);
+  }
+  .flow{text-align:center; padding:7px 0; font-size:11.5px; font-weight:700; color:var(--b-700)}
+  .flow .lbl{background:var(--b-100); border:1px solid var(--line); padding:3px 11px; border-radius:999px}
+  .flow .chev{display:block; font-size:15px; line-height:1; margin-top:1px; color:var(--b-500)}
+  .cols{display:grid; grid-template-columns:1.25fr 1fr; gap:16px; align-items:start}
+  .col{display:flex; flex-direction:column}
+  @media (max-width:760px){.cols{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Unified Solutions Platform</h1>
+  <p>Connect any data source · shape it with SQL or Python · build a dashboard · share it to stakeholders.</p>
+  <span class="tag">Open-source data &amp; dashboard platform</span>
+</header>
+
+<main>
+
+  <section>
+    <h2><span class="num">1</span> The analyst journey</h2>
+    <div class="sub">One self-service loop replaces hand-wiring every dashboard.</div>
+    <div class="mermaid">
+flowchart LR
+  A["① Connect<br/><b>Pick a Data Service</b>"]:::step
+  B["② Ingest<br/><b>Sync into the warehouse</b>"]:::step
+  C["③ Shape<br/><b>SQL editor / Python notebook</b>"]:::step
+  D["④ Build<br/><b>Assemble a dashboard</b>"]:::step
+  E["⑤ Share<br/><b>Send to stakeholders</b>"]:::done
+  A --> B --> C --> D --> E
+  classDef step fill:#e3f0fb,stroke:#1573c0,stroke-width:1.5px,color:#082a4d;
+  classDef done fill:#1573c0,stroke:#082a4d,stroke-width:1.5px,color:#ffffff;
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">2</span> System architecture</h2>
+    <div class="sub">Presentation → API → Compute / Ingestion → Storage, with external sources feeding in.</div>
+    <div class="arch">
+      <div class="layer layer-ui">
+        <div class="lhead">🖥️ Presentation <em>— React + TypeScript SPA</em></div>
+        <div class="brow">
+          <div class="box">Data Services<small>connector gallery</small></div>
+          <div class="box">SQL Editor</div>
+          <div class="box">Python Notebook</div>
+          <div class="box">Dashboard Builder</div>
+          <div class="box">Viewer<small>+ share links</small></div>
+        </div>
+      </div>
+
+      <div class="flow"><span class="lbl">⇅ REST / WebSocket API</span><span class="chev">▼</span></div>
+
+      <div class="layer layer-api">
+        <div class="lhead">⚙️ Application <em>— FastAPI · Auth / RBAC / Workspaces / Audit</em></div>
+        <div class="brow">
+          <div class="box">Connector Registry</div>
+          <div class="box">Sync Orchestrator</div>
+          <div class="box">Query Service</div>
+          <div class="box">Dashboard Service</div>
+        </div>
+      </div>
+
+      <div class="cols">
+        <div class="col">
+          <div class="flow"><span class="lbl">enqueue &amp; orchestrate</span><span class="chev">▼</span></div>
+          <div class="layer layer-work">
+            <div class="lhead">🔧 Workers <em>— Redis-backed</em></div>
+            <div class="brow">
+              <div class="box">Sync Worker</div>
+              <div class="box">Scheduler</div>
+              <div class="box">Notebook Kernel<small>gVisor sandbox</small></div>
+            </div>
+          </div>
+          <div class="flow"><span class="chev">▲</span><span class="lbl">extract — pull from sources</span></div>
+          <div class="layer layer-src">
+            <div class="lhead">🌍 External Data Sources</div>
+            <div class="srcrow">
+              <span class="src">CommCare</span><span class="src">Kobo</span><span class="src">ODK Central</span>
+              <span class="src">SurveyCTO</span><span class="src">DHIS2</span><span class="src">Google Sheets</span>
+              <span class="src">Google Drive</span><span class="src">Databricks</span>
+              <span class="src">REST / Webhook</span><span class="src">CSV / Excel</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="col">
+          <div class="flow"><span class="lbl">query · read / write</span><span class="chev">▼</span></div>
+          <div class="layer layer-store">
+            <div class="lhead">🗄️ Storage</div>
+            <div class="brow" style="grid-template-columns:1fr 1fr">
+              <div class="box box-store">Postgres<small>metadata</small></div>
+              <div class="box box-store">Object Store<small>Parquet (raw)</small></div>
+              <div class="box box-store">DuckDB<small>query engine</small></div>
+              <div class="box box-store">Redis<small>cache · sessions</small></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="legend">
+      <span class="chip">FastAPI · SQLAlchemy</span>
+      <span class="chip">Arq workers + scheduler</span>
+      <span class="chip">PostgreSQL (metadata)</span>
+      <span class="chip">DuckDB + Parquet (analytics)</span>
+      <span class="chip">MinIO / S3 object store</span>
+      <span class="chip">React · ECharts · shadcn/ui</span>
+      <span class="chip">gVisor-sandboxed Python</span>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">3</span> Data flow — source to stakeholder</h2>
+    <div class="sub">How one record travels from a survey form to a shared dashboard tile.</div>
+    <div class="mermaid">
+flowchart LR
+  SRC["Data source<br/>(e.g. DHIS2, CSV)"] --> EX["Connector<br/>extractor"]
+  EX --> RAW[("Raw Parquet<br/>landing")]
+  RAW --> DS["Dataset<br/>(governed, versioned)"]
+  DS --> SQL["SQL editor"]
+  DS --> PY["Python notebook"]
+  SQL --> CH["Saved chart /<br/>table"]
+  PY --> CH
+  CH --> TILE["Dashboard tile"]
+  TILE --> DASH["Dashboard<br/>(filters: date · org-unit · map)"]
+  DASH --> SHARE["🔗 Share to<br/>stakeholders"]
+
+  classDef a fill:#e3f0fb,stroke:#1573c0,color:#082a4d;
+  classDef store fill:#cfe6f8,stroke:#1573c0,color:#082a4d;
+  classDef end1 fill:#1573c0,stroke:#082a4d,color:#fff;
+  class SRC,EX,DS,SQL,PY,CH,TILE,DASH a;
+  class RAW store;
+  class SHARE end1;
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">4</span> Security &amp; governance (cross-cutting)</h2>
+    <div class="sub">Every layer is workspace-scoped, audited, and least-privilege.</div>
+    <div class="mermaid">
+flowchart LR
+  L1["SSO login<br/>(Google Workspace)"] --> L2["Workspaces<br/>+ RBAC roles"]
+  L2 --> L3["authorize() on<br/>every request"]
+  L3 --> L4["Encrypted secrets<br/>(envelope / KMS)"]
+  L4 --> L5["Read-only SQL<br/>+ sandboxed Python"]
+  L5 --> L6["Audit log +<br/>data-as-of freshness"]
+  classDef sec fill:#082a4d,stroke:#082a4d,color:#fff;
+  class L1,L2,L3,L4,L5,L6 sec;
+    </div>
+  </section>
+
+  <footer>Unified Solutions Platform · architecture overview · generated for presentation</footer>
+</main>
+
+<button class="print" onclick="window.print()">⤓ Save as PDF</button>
+
+<script>
+  mermaid.initialize({
+    startOnLoad:true,
+    theme:"base",
+    themeVariables:{
+      primaryColor:"#e3f0fb", primaryBorderColor:"#1573c0", primaryTextColor:"#082a4d",
+      lineColor:"#1573c0", fontFamily:"-apple-system,Segoe UI,Roboto,sans-serif",
+      clusterBkg:"#f1f7fc", clusterBorder:"#d6e3f0"
+    },
+    flowchart:{curve:"basis", htmlLabels:true, padding:14}
+  });
+</script>
+</body>
+</html>

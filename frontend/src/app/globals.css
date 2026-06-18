@@ -1,0 +1,186 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-inter: "Inter", system-ui, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-white text-slate-900 antialiased;
+  font-feature-settings: "cv11", "ss01";
+}
+
+@layer utilities {
+  /* AI-centric gradient text */
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(120deg, #14b8a6 0%, #5340e0 45%, #1d1849 100%);
+  }
+
+  /* soft dotted grid background for hero/sections */
+  .bg-grid {
+    background-image: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.09) 1px, transparent 0);
+    background-size: 26px 26px;
+  }
+  .bg-grid-dark {
+    background-image: radial-gradient(circle at 1px 1px, rgba(11, 61, 112, 0.07) 1px, transparent 0);
+    background-size: 26px 26px;
+  }
+
+  /* glow orbs */
+  .orb {
+    @apply pointer-events-none absolute rounded-full blur-3xl;
+  }
+
+  .glass {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(12px);
+  }
+
+  .ring-focus {
+    @apply focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500;
+  }
+
+  /* Scrollable without a visible scrollbar (used by the top nav). */
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+}
+
+/* react-grid-layout essentials (positioning is inline; these add transitions + handle) */
+.react-grid-item {
+  transition: transform 200ms ease;
+}
+.react-grid-item.react-grid-placeholder {
+  background: #6457f0;
+  opacity: 0.18;
+  border-radius: 16px;
+}
+.react-grid-item > .react-resizable-handle {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 14px;
+  height: 14px;
+  cursor: se-resize;
+  border-right: 2px solid #94a3b8;
+  border-bottom: 2px solid #94a3b8;
+  border-bottom-right-radius: 3px;
+}
+
+/* Rendered markdown (notebook text cells) */
+.md-content { @apply text-sm leading-relaxed text-slate-700; }
+.md-content h1 { @apply mb-1 mt-1 text-xl font-bold text-brand-950; }
+.md-content h2 { @apply mb-1 mt-2 text-lg font-bold text-brand-950; }
+.md-content h3 { @apply mb-1 mt-2 text-base font-semibold text-brand-950; }
+.md-content p { @apply my-1.5; }
+.md-content ul { @apply my-1.5 list-disc pl-5; }
+.md-content ol { @apply my-1.5 list-decimal pl-5; }
+.md-content li { @apply my-0.5; }
+.md-content a { @apply text-brand-600 underline; }
+.md-content strong { @apply font-semibold text-slate-900; }
+.md-content code { @apply rounded bg-slate-100 px-1 py-0.5 font-mono text-[12px] text-brand-700; }
+.md-content pre { @apply my-2 overflow-auto rounded-lg bg-slate-900 p-3 text-xs text-slate-100; }
+.md-content pre code { @apply bg-transparent p-0 text-slate-100; }
+.md-content blockquote { @apply border-l-2 border-slate-200 pl-3 italic text-slate-500; }
+
+/* Thin, on-brand scrollbars */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: #cdddec;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #aac6e0;
+  background-clip: content-box;
+}
+
+/* Accessibility: a visible focus ring for keyboard users on any interactive
+   element that doesn't already define one (mouse clicks stay ring-free). */
+a:focus-visible,
+button:focus-visible,
+select:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid #6457f0;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Skip-to-content link — hidden until focused. */
+.skip-link {
+  position: fixed;
+  left: 1rem;
+  top: -3rem;
+  z-index: 100;
+  border-radius: 0.5rem;
+  background: #1d1849;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #fff;
+  transition: top 0.15s ease;
+}
+.skip-link:focus {
+  top: 1rem;
+}
+
+/* Respect users who prefer reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ----------------------------------------------------------------------------
+   Dark theme. Driven by `.dark` on <html>. Rather than annotate every component,
+   we remap the common surface/text/border utilities so the existing UI adapts.
+   `.dark .x` (two classes) outranks the base `.x` utility, so no !important.
+---------------------------------------------------------------------------- */
+.dark body { background-color: #0b1220; color: #e2e8f0; }
+
+/* Surfaces */
+.dark .bg-white { background-color: #0f172a; }
+.dark .bg-slate-50 { background-color: #16233a; }
+.dark .bg-slate-100 { background-color: #1e293b; }
+.dark .bg-brand-50 { background-color: rgba(100, 87, 240, 0.16); }
+
+/* Borders */
+.dark .border-slate-100 { border-color: #1f2a3c; }
+.dark .border-slate-200 { border-color: #1f2a3c; }
+.dark .border-slate-300 { border-color: #243044; }
+
+/* Text — headings + body */
+.dark .text-brand-950 { color: #f1f5f9; }
+.dark .text-brand-900 { color: #f1f5f9; }
+.dark .text-brand-700 { color: #a7adfb; }
+.dark .text-brand-600 { color: #a7adfb; }
+.dark .text-slate-900 { color: #e2e8f0; }
+.dark .text-slate-800 { color: #e2e8f0; }
+.dark .text-slate-700 { color: #94a3b8; }
+.dark .text-slate-600 { color: #94a3b8; }
+.dark .text-slate-500 { color: #94a3b8; }
+.dark .text-slate-400 { color: #5d6b80; }
+.dark .text-slate-300 { color: #5d6b80; }
+
+/* Shadows + scrollbar + inputs */
+.dark .shadow-card { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 28px -10px rgba(0, 0, 0, 0.55); }
+.dark .shadow-lift { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 28px -10px rgba(0, 0, 0, 0.55); }
+.dark ::-webkit-scrollbar-thumb { background: #334155; background-clip: content-box; }
+.dark input, .dark textarea, .dark select { color: #e2e8f0; }
+.dark input::placeholder, .dark textarea::placeholder { color: #64748b; }

@@ -1,0 +1,10 @@
+Unified Solutions Platform
+Copyright 2026 Godsgift Olomu
+
+This product is licensed under the Apache License, Version 2.0
+(see the LICENSE file).
+
+This software bundles or depends on third-party open-source components,
+each distributed under its own license (e.g. FastAPI, SQLAlchemy, DuckDB,
+Next.js, React, Apache ECharts, Leaflet/OpenStreetMap data). Their licenses
+and copyright notices are retained in their respective packages.
