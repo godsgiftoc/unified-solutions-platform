@@ -4,7 +4,7 @@ import Editor from "@monaco-editor/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Database, Download, Pencil, Play, Plus, RotateCcw, Trash2, Type } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 
 import { Datasets, Notebooks, type NotebookCell } from "@/lib/api";
@@ -228,7 +228,18 @@ function InsertBar({ onAdd }: { onAdd: (t: "code" | "markdown") => void }) {
   );
 }
 
-function CellView({ notebookId, cell }: { notebookId: string; cell: NotebookCell }) {
+const CellView = memo(
+  CellViewBase,
+  (a, b) =>
+    a.notebookId === b.notebookId &&
+    a.cell.id === b.cell.id &&
+    a.cell.cell_type === b.cell.cell_type &&
+    a.cell.source === b.cell.source &&
+    a.cell.execution_count === b.cell.execution_count &&
+    JSON.stringify(a.cell.outputs) === JSON.stringify(b.cell.outputs),
+);
+
+function CellViewBase({ notebookId, cell }: { notebookId: string; cell: NotebookCell }) {
   const qc = useQueryClient();
   const { toast } = useToast();
   const { resolved } = useTheme();
