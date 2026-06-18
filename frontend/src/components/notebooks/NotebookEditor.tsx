@@ -318,7 +318,7 @@ function CellView({ notebookId, cell }: { notebookId: string; cell: NotebookCell
           <Trash2 size={13} />
         </button>
       </div>
-      {run.isPending && <div className="border-t border-slate-100 bg-slate-50/60 px-3 py-2 text-sm text-slate-400">Executing…</div>}
+      {run.isPending && <div className="border-t border-slate-100 bg-slate-50/60 px-3 py-2 text-sm text-slate-400 dark:bg-white/5">Executing…</div>}
       {!run.isPending && cell.outputs?.length > 0 && <CellOutputs outputs={cell.outputs} />}
     </div>
   );
@@ -349,7 +349,7 @@ function MarkdownCell({
             placeholder="# Heading&#10;&#10;Write **markdown** here — lists, `code`, [links](url)…"
             className="min-h-[150px] w-full resize-y border-0 p-4 font-mono text-[13px] leading-relaxed text-slate-700 focus:outline-none md:border-r md:border-slate-100"
           />
-          <div className="min-h-[150px] overflow-auto bg-slate-50/50 p-4">
+          <div className="min-h-[150px] overflow-auto bg-slate-50/50 p-4 dark:bg-white/5">
             <div className="md-content">
               <ReactMarkdown>{source || "_Live preview…_"}</ReactMarkdown>
             </div>

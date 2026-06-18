@@ -190,3 +190,24 @@ select:focus-visible,
 .dark ::-webkit-scrollbar-thumb { background: #3a3a3a; background-clip: content-box; }
 .dark input, .dark textarea, .dark select { color: #e6e6e6; }
 .dark input::placeholder, .dark textarea::placeholder { color: #6e6e6e; }
+
+/* Hover surfaces — escaped colon selectors are safe (only the escaped slash
+   broke parsing). Kept LAST so they can never drop earlier rules. */
+.dark .hover\:bg-slate-50:hover { background-color: #1f1f1f; }
+.dark .hover\:bg-slate-100:hover { background-color: #262626; }
+.dark .hover\:bg-white:hover { background-color: #1f1f1f; }
+.dark .hover\:bg-brand-50:hover { background-color: rgba(100, 87, 240, 0.2); }
+.dark .hover\:bg-red-50:hover { background-color: rgba(239, 68, 68, 0.16); }
+
+/* Rings (set the ring colour variable) */
+.dark .ring-slate-100 { --tw-ring-color: rgba(255, 255, 255, 0.08); }
+.dark .ring-slate-200 { --tw-ring-color: rgba(255, 255, 255, 0.1); }
+
+/* Status tints — mute the light alert backgrounds + lift their text */
+.dark .bg-emerald-50 { background-color: rgba(16, 185, 129, 0.15); }
+.dark .bg-amber-50 { background-color: rgba(245, 158, 11, 0.15); }
+.dark .bg-red-50 { background-color: rgba(239, 68, 68, 0.15); }
+.dark .text-emerald-700 { color: #6ee7b7; }
+.dark .text-amber-700 { color: #fcd34d; }
+.dark .text-red-700 { color: #fca5a5; }
+.dark .text-red-600 { color: #fca5a5; }
