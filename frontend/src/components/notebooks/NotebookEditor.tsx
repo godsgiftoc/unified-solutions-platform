@@ -276,7 +276,8 @@ function CellViewBase({ notebookId, cell }: { notebookId: string; cell: Notebook
   const editorHeight = Math.min(Math.max(lines * 20 + 28, 56), 2000);
 
   return (
-    <div className="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-card transition focus-within:border-brand-400 focus-within:ring-2 focus-within:ring-brand-200 focus-within:shadow-lift dark:focus-within:border-brand-500/60 dark:focus-within:ring-brand-500/40">
+    <div>
+      <div className="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-card transition focus-within:border-brand-400 focus-within:ring-2 focus-within:ring-brand-200 focus-within:shadow-lift dark:focus-within:border-brand-500/60 dark:focus-within:ring-brand-500/40">
       <div className="flex items-stretch">
         <div className="flex w-12 shrink-0 items-start justify-center border-r border-slate-100 bg-slate-50/70 pt-3.5 transition group-focus-within:bg-brand-50 dark:bg-white/5 dark:group-focus-within:bg-brand-500/25">
           <button
@@ -335,8 +336,18 @@ function CellViewBase({ notebookId, cell }: { notebookId: string; cell: Notebook
           <Trash2 size={13} />
         </button>
       </div>
-      {run.isPending && <div className="border-t border-slate-100 bg-slate-50/60 px-3 py-2 text-sm text-slate-400 dark:bg-white/5">Executing…</div>}
-      {!run.isPending && cell.outputs?.length > 0 && <CellOutputs outputs={cell.outputs} />}
+      </div>
+
+      {/* Output — a separate block below the code cell, aligned under the editor (VS Code-style). */}
+      {run.isPending ? (
+        <div className="ml-12 mt-1.5 inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-400 shadow-card dark:border-white/10">
+          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand-500" /> Executing…
+        </div>
+      ) : cell.outputs?.length > 0 ? (
+        <div className="ml-12 mt-1.5">
+          <CellOutputs outputs={cell.outputs} />
+        </div>
+      ) : null}
     </div>
   );
 }

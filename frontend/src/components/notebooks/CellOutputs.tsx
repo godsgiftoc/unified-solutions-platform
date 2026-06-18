@@ -6,7 +6,7 @@ import { DataTable } from "@/components/charts/DataTable";
 export function CellOutputs({ outputs }: { outputs: CellOutput[] }) {
   if (!outputs?.length) return null;
   return (
-    <div className="space-y-2 border-t border-slate-100 bg-slate-50/60 p-3 dark:bg-white/5">
+    <div className="space-y-2 rounded-lg border border-slate-200 bg-white p-3 shadow-card dark:border-white/10 dark:bg-white/[0.03]">
       {outputs.map((o, i) => {
         if (o.type === "image") {
           // eslint-disable-next-line @next/next/no-img-element
@@ -25,7 +25,7 @@ export function CellOutputs({ outputs }: { outputs: CellOutput[] }) {
           );
         }
         return (
-          <pre key={i} className="overflow-auto whitespace-pre-wrap rounded-lg bg-white p-3 font-mono text-xs leading-relaxed text-slate-700 ring-1 ring-slate-100 dark:ring-white/10">
+          <pre key={i} className="overflow-auto whitespace-pre-wrap px-1 font-mono text-xs leading-relaxed text-slate-700">
             {o.text}
           </pre>
         );
