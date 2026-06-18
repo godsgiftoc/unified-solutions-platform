@@ -258,10 +258,11 @@ function CellView({ notebookId, cell }: { notebookId: string; cell: NotebookCell
     return <MarkdownCell source={source} setSource={setSource} onSave={() => save.mutate(source)} onDelete={() => del.mutate()} />;
   }
 
-  // Hug the actual code: ignore trailing blank lines when sizing the editor,
-  // but keep a comfortable minimum so a one-liner still has room to breathe.
-  const lines = Math.max(1, source.replace(/\n+$/, "").split("\n").length);
-  const editorHeight = Math.min(Math.max(lines * 20 + 32, 60), 460);
+  // Grow the cell to fit every line (incl. the trailing one you just added with
+  // Enter) so the editor expands downward instead of scrolling inside and hiding
+  // the top. A generous max keeps a pasted novel from running away.
+  const lines = Math.max(1, source.split("\n").length);
+  const editorHeight = Math.min(Math.max(lines * 20 + 28, 56), 2000);
 
   return (
     <div className="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-card transition focus-within:border-brand-400 focus-within:ring-2 focus-within:ring-brand-200 focus-within:shadow-lift dark:focus-within:border-brand-500/60 dark:focus-within:ring-brand-500/40">
@@ -287,8 +288,13 @@ function CellView({ notebookId, cell }: { notebookId: string; cell: NotebookCell
             onMount={(editor, monaco) => {
               registerPythonCompletion(monaco);
               // Run with Shift+Enter or Cmd/Ctrl+Enter, like Colab/Jupyter.
-              editor.addCommand(monaco.KeyMod.Shift | monaco.KeyCode.Enter, () => runRef.current());
-              editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => runRef.current());
+              // addAction reliably binds editor-scoped keybindings (addCommand can be swallowed).
+              editor.addAction({
+                id: "usp-run-cell",
+                label: "Run cell",
+                keybindings: [monaco.KeyMod.Shift | monaco.KeyCode.Enter, monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter],
+                run: () => runRef.current(),
+              });
               editor.onDidBlurEditorText(() => save.mutate(source));
             }}
             options={{
