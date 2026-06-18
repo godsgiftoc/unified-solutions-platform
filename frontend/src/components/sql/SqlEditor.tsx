@@ -13,6 +13,8 @@ import { DataTable } from "@/components/charts/DataTable";
 import { registerSqlCompletion, sqlCatalog } from "@/lib/sqlCompletion";
 import { useToast } from "@/lib/toast";
 import { usePrompt } from "@/lib/confirm";
+import { useTheme } from "@/lib/theme";
+import { defineUspDark, monacoTheme } from "@/lib/monacoTheme";
 
 const VIZ = ["column", "bar", "line", "area", "pie", "scatter", "bubble", "histogram", "map", "geomap", "table"];
 
@@ -20,6 +22,7 @@ export function SqlEditor() {
   const qc = useQueryClient();
   const { toast } = useToast();
   const prompt = usePrompt();
+  const { resolved } = useTheme();
   const { activeId: workspaceId } = useProject();
   const datasets = useQuery({
     queryKey: ["datasets", workspaceId],
@@ -225,8 +228,10 @@ export function SqlEditor() {
             <Editor
               height="100%"
               defaultLanguage="pgsql"
+              theme={monacoTheme(resolved)}
               value={sql}
               onChange={(v) => setSql(v ?? "")}
+              beforeMount={(monaco) => defineUspDark(monaco)}
               onMount={(editor, monaco) => {
                 registerSqlCompletion(monaco);
                 editor.onDidFocusEditorText(() => setFocused(true));

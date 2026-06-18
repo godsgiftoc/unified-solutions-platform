@@ -13,7 +13,7 @@ html {
   background-color: #1d1849;
 }
 html.dark {
-  background-color: #0b1220;
+  background-color: #0a0a0a;
 }
 
 body {
@@ -158,35 +158,35 @@ select:focus-visible,
    we remap the common surface/text/border utilities so the existing UI adapts.
    `.dark .x` (two classes) outranks the base `.x` utility, so no !important.
 ---------------------------------------------------------------------------- */
-.dark body { background-color: #0b1220; color: #e2e8f0; }
+.dark body { background-color: #0a0a0a; color: #e6e6e6; }
 
-/* Surfaces */
-.dark .bg-white { background-color: #0f172a; }
-.dark .bg-slate-50 { background-color: #16233a; }
-.dark .bg-slate-100 { background-color: #1e293b; }
-.dark .bg-brand-50 { background-color: rgba(100, 87, 240, 0.16); }
+/* Surfaces — neutral near-black, cards lifted slightly off the page */
+.dark .bg-white { background-color: #161616; }
+.dark .bg-slate-50 { background-color: #1c1c1c; }
+.dark .bg-slate-100 { background-color: #242424; }
+.dark .bg-brand-50 { background-color: rgba(100, 87, 240, 0.18); }
 
-/* Borders */
-.dark .border-slate-100 { border-color: #1f2a3c; }
-.dark .border-slate-200 { border-color: #1f2a3c; }
-.dark .border-slate-300 { border-color: #243044; }
+/* Borders — neutral grey */
+.dark .border-slate-100 { border-color: #262626; }
+.dark .border-slate-200 { border-color: #262626; }
+.dark .border-slate-300 { border-color: #333333; }
 
-/* Text — headings + body */
-.dark .text-brand-950 { color: #f1f5f9; }
-.dark .text-brand-900 { color: #f1f5f9; }
+/* Text — headings + body (neutral greys; indigo kept for accents) */
+.dark .text-brand-950 { color: #f5f5f5; }
+.dark .text-brand-900 { color: #f5f5f5; }
 .dark .text-brand-700 { color: #a7adfb; }
 .dark .text-brand-600 { color: #a7adfb; }
-.dark .text-slate-900 { color: #e2e8f0; }
-.dark .text-slate-800 { color: #e2e8f0; }
-.dark .text-slate-700 { color: #94a3b8; }
-.dark .text-slate-600 { color: #94a3b8; }
-.dark .text-slate-500 { color: #94a3b8; }
-.dark .text-slate-400 { color: #5d6b80; }
-.dark .text-slate-300 { color: #5d6b80; }
+.dark .text-slate-900 { color: #ededed; }
+.dark .text-slate-800 { color: #ededed; }
+.dark .text-slate-700 { color: #a3a3a3; }
+.dark .text-slate-600 { color: #a3a3a3; }
+.dark .text-slate-500 { color: #a3a3a3; }
+.dark .text-slate-400 { color: #6e6e6e; }
+.dark .text-slate-300 { color: #6e6e6e; }
 
 /* Shadows + scrollbar + inputs */
-.dark .shadow-card { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 28px -10px rgba(0, 0, 0, 0.55); }
-.dark .shadow-lift { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 28px -10px rgba(0, 0, 0, 0.55); }
-.dark ::-webkit-scrollbar-thumb { background: #334155; background-clip: content-box; }
-.dark input, .dark textarea, .dark select { color: #e2e8f0; }
-.dark input::placeholder, .dark textarea::placeholder { color: #64748b; }
+.dark .shadow-card { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 10px 28px -10px rgba(0, 0, 0, 0.7); }
+.dark .shadow-lift { box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 12px 32px -10px rgba(0, 0, 0, 0.75); }
+.dark ::-webkit-scrollbar-thumb { background: #3a3a3a; background-clip: content-box; }
+.dark input, .dark textarea, .dark select { color: #e6e6e6; }
+.dark input::placeholder, .dark textarea::placeholder { color: #6e6e6e; }

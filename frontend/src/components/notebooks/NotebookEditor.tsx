@@ -10,6 +10,8 @@ import ReactMarkdown from "react-markdown";
 import { Datasets, Notebooks, type NotebookCell } from "@/lib/api";
 import { downloadNotebook } from "@/lib/ipynb";
 import { useToast } from "@/lib/toast";
+import { useTheme } from "@/lib/theme";
+import { defineUspDark, monacoTheme } from "@/lib/monacoTheme";
 import { CellOutputs } from "./CellOutputs";
 
 // usp helpers + common pandas, offered as autocomplete in every code cell.
@@ -229,6 +231,7 @@ function InsertBar({ onAdd }: { onAdd: (t: "code" | "markdown") => void }) {
 function CellView({ notebookId, cell }: { notebookId: string; cell: NotebookCell }) {
   const qc = useQueryClient();
   const { toast } = useToast();
+  const { resolved } = useTheme();
   const [source, setSource] = useState(cell.source);
   useEffect(() => setSource(cell.source), [cell.source]);
 
@@ -263,7 +266,7 @@ function CellView({ notebookId, cell }: { notebookId: string; cell: NotebookCell
   return (
     <div className="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-card transition focus-within:border-brand-400 focus-within:ring-2 focus-within:ring-brand-200 focus-within:shadow-lift">
       <div className="flex items-stretch">
-        <div className="flex w-12 shrink-0 items-start justify-center border-r border-slate-100 bg-slate-50/70 pt-3.5 transition group-focus-within:bg-brand-50">
+        <div className="flex w-12 shrink-0 items-start justify-center border-r border-slate-100 bg-slate-50/70 pt-3.5 transition group-focus-within:bg-brand-50 dark:bg-white/5">
           <button
             onClick={() => run.mutate()}
             disabled={run.isPending}
@@ -277,8 +280,10 @@ function CellView({ notebookId, cell }: { notebookId: string; cell: NotebookCell
           <Editor
             height={`${editorHeight}px`}
             defaultLanguage="python"
+            theme={monacoTheme(resolved)}
             value={source}
             onChange={(v) => setSource(v ?? "")}
+            beforeMount={(monaco) => defineUspDark(monaco)}
             onMount={(editor, monaco) => {
               registerPythonCompletion(monaco);
               // Run with Shift+Enter or Cmd/Ctrl+Enter, like Colab/Jupyter.

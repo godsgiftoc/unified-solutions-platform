@@ -2,7 +2,7 @@ import { TopNav } from "@/components/TopNav";
 
 export default function PlatformLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#f7f9fc] to-[#eef2f8] dark:from-[#0b1220] dark:to-[#0f172a]">
+    <div className="min-h-screen bg-gradient-to-b from-[#f7f9fc] to-[#eef2f8] dark:from-[#0a0a0a] dark:to-[#000000]">
       <a href="#main-content" className="skip-link">Skip to content</a>
       <TopNav />
       <main id="main-content" tabIndex={-1} className="focus:outline-none">

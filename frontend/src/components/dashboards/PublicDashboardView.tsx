@@ -41,7 +41,7 @@ export function PublicDashboardView({ token }: { token: string }) {
   const active = !!(gf.state || gf.lga || gf.from || gf.to);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#f7f9fc] to-[#eef2f8] dark:from-[#0b1220] dark:to-[#0f172a]">
+    <div className="min-h-screen bg-gradient-to-b from-[#f7f9fc] to-[#eef2f8] dark:from-[#0a0a0a] dark:to-[#000000]">
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2.5">
