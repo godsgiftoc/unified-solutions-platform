@@ -122,7 +122,7 @@ export function DatasetsExplorer() {
                   const isCollapsed = collapsed.has(key);
                   return (
                     <div key={key} className="ml-1.5">
-                      <button onClick={() => toggle(key)} className="flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-slate-600 hover:bg-slate-50">
+                      <button onClick={() => toggle(key)} className="flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-slate-600 hover:bg-brand-50">
                         {isCollapsed ? <ChevronRight size={14} className="text-slate-400" /> : <ChevronDown size={14} className="text-slate-400" />}
                         {isCollapsed ? <Folder size={15} className="text-azure" /> : <FolderOpen size={15} className="text-azure" />}
                         <span className="font-medium">{schema}</span>
@@ -219,7 +219,7 @@ function TableNode({
 
   return (
     <div className="ml-5">
-      <div className={`group flex items-center gap-1 rounded-md pr-1 ${selected ? "bg-brand-50 text-brand-700" : "text-slate-700 hover:bg-slate-50"}`}>
+      <div className={`group flex items-center gap-1 rounded-md pr-1 ${selected ? "bg-brand-50 text-brand-700" : "text-slate-700 hover:bg-brand-50"}`}>
         <button
           onClick={() => setOpen((o) => !o)}
           title={open ? "Hide columns" : "Show columns"}
@@ -244,7 +244,7 @@ function TableNode({
         <div className="ml-[18px] mt-0.5 space-y-px border-l border-slate-100 pl-2">
           {detail.isLoading && <p className="px-1.5 py-1 text-[11px] text-slate-400">Loading columns…</p>}
           {detail.data?.columns.map((c) => (
-            <div key={c.name} className="flex items-center gap-2 rounded px-1.5 py-1 hover:bg-slate-50">
+            <div key={c.name} className="flex items-center gap-2 rounded px-1.5 py-1 hover:bg-brand-50">
               <Columns3 size={11} className="shrink-0 text-slate-300" />
               <span className="min-w-0 flex-1 truncate text-[12px] text-slate-600">{c.name}</span>
               <span className="shrink-0 font-mono text-[10px] uppercase tracking-wide text-azure">{c.type}</span>

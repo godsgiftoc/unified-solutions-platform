@@ -399,7 +399,7 @@ function SaveChart({
   });
 
   return (
-    <div className="rounded-xl border border-brand-200 bg-brand-50/60 p-3">
+    <div className="rounded-xl border border-brand-200 bg-brand-50/60 p-3 dark:border-brand-500/30 dark:bg-brand-500/10">
       <div className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-brand-700">
         {isEditing ? <Pencil size={12} /> : <Save size={12} />} {isEditing ? "Update chart" : "Save as chart"}
       </div>
