@@ -264,9 +264,9 @@ function CellView({ notebookId, cell }: { notebookId: string; cell: NotebookCell
   const editorHeight = Math.min(Math.max(lines * 20 + 32, 60), 460);
 
   return (
-    <div className="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-card transition focus-within:border-brand-400 focus-within:ring-2 focus-within:ring-brand-200 focus-within:shadow-lift">
+    <div className="group overflow-hidden rounded-xl border border-slate-200 bg-white shadow-card transition focus-within:border-brand-400 focus-within:ring-2 focus-within:ring-brand-200 focus-within:shadow-lift dark:focus-within:border-brand-500/60 dark:focus-within:ring-brand-500/40">
       <div className="flex items-stretch">
-        <div className="flex w-12 shrink-0 items-start justify-center border-r border-slate-100 bg-slate-50/70 pt-3.5 transition group-focus-within:bg-brand-50 dark:bg-white/5">
+        <div className="flex w-12 shrink-0 items-start justify-center border-r border-slate-100 bg-slate-50/70 pt-3.5 transition group-focus-within:bg-brand-50 dark:bg-white/5 dark:group-focus-within:bg-brand-500/25">
           <button
             onClick={() => run.mutate()}
             disabled={run.isPending}
