@@ -141,6 +141,8 @@ export const Workspaces = {
 
 export const Auth = {
   devLogin: (email: string) => api.post("/auth/dev-login", { email }),
+  logout: () => api.post("/auth/logout", {}),
+  me: () => api.get<{ email: string; full_name?: string | null }>("/auth/me"),
 };
 
 // ---- Datasets / Compute ----

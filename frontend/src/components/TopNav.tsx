@@ -7,26 +7,25 @@ import {
   ChevronsUpDown,
   FolderKanban,
   LayoutDashboard,
-  Monitor,
-  Moon,
+  LogOut,
   NotebookPen,
   Plug,
   Plus,
   Sparkles,
   Store,
-  Sun,
   Table2,
   Terminal,
+  User,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { Notebooks, Workspaces } from "@/lib/api";
+import { Auth, Notebooks, Workspaces } from "@/lib/api";
 import { useProject } from "@/lib/project";
-import { useTheme, type Theme } from "@/lib/theme";
 import { useToast } from "@/lib/toast";
 import { Button, Field, inputClass, Modal } from "@/components/ui";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const NAV = [
   { href: "/marketplace", label: "Marketplace", icon: Store },
@@ -93,48 +92,46 @@ export function TopNav() {
         >
           <Sparkles size={16} className="text-azure" /> <span className="hidden sm:inline">Ask AI</span>
         </button>
+
+        <UserMenu />
       </div>
     </header>
   );
 }
 
-function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
+function UserMenu() {
+  const router = useRouter();
+  const { toast } = useToast();
   const [open, setOpen] = useState(false);
-  const opts: { v: Theme; icon: typeof Sun; label: string }[] = [
-    { v: "light", icon: Sun, label: "Light" },
-    { v: "system", icon: Monitor, label: "System" },
-    { v: "dark", icon: Moon, label: "Dark" },
-  ];
-  const Current = (opts.find((o) => o.v === theme) ?? opts[1]).icon;
+  const me = useQuery({ queryKey: ["me"], queryFn: () => Auth.me(), retry: false });
+  const signOut = useMutation({
+    mutationFn: () => Auth.logout(),
+    onSuccess: () => { setOpen(false); toast("Signed out"); router.push("/"); },
+    onError: () => toast("Couldn't sign out", "error"),
+  });
 
   return (
     <div className="relative shrink-0">
       <button
         onClick={() => setOpen((o) => !o)}
-        title="Theme"
-        aria-label="Theme"
+        title="Account"
+        aria-label="Account"
         aria-haspopup="menu"
-        className="grid h-9 w-9 place-items-center rounded-lg bg-white/5 text-brand-100/80 ring-1 ring-white/10 transition hover:bg-white/10 hover:text-white"
+        className="grid h-9 w-9 place-items-center rounded-full bg-white/10 text-white ring-1 ring-white/15 transition hover:bg-white/15"
       >
-        <Current size={17} />
+        <User size={16} />
       </button>
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div role="menu" className="absolute right-0 top-full z-20 mt-1.5 w-40 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 text-slate-700 shadow-lift">
-            {opts.map(({ v, icon: Icon, label }) => (
-              <button
-                key={v}
-                role="menuitemradio"
-                aria-checked={theme === v}
-                onClick={() => { setTheme(v); setOpen(false); }}
-                className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm hover:bg-slate-50 ${theme === v ? "font-semibold text-brand-700" : ""}`}
-              >
-                <Icon size={15} className={theme === v ? "text-brand-600" : "text-slate-400"} /> {label}
-                {theme === v && <Check size={14} className="ml-auto text-brand-600" />}
-              </button>
-            ))}
+          <div role="menu" className="absolute right-0 top-full z-20 mt-1.5 w-56 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 text-slate-700 shadow-lift">
+            <div className="border-b border-slate-100 px-3 py-2.5">
+              <div className="text-[10px] uppercase tracking-wide text-slate-400">Signed in as</div>
+              <div className="truncate text-sm font-medium text-slate-700">{me.data?.email ?? "dev@local"}</div>
+            </div>
+            <button onClick={() => signOut.mutate()} disabled={signOut.isPending} className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50">
+              <LogOut size={15} /> {signOut.isPending ? "Signing out…" : "Sign out"}
+            </button>
           </div>
         </>
       )}

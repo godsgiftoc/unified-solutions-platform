@@ -1,50 +1,25 @@
 "use client";
 
-import { useState } from "react";
-
-import { brandFor, logoSources } from "@/lib/connectorBrand";
+import { brandFor } from "@/lib/connectorBrand";
 
 /**
- * Renders the real service logo, cascading through logo providers on error and
- * finally falling back to a branded monogram tile so a logo box is never empty.
+ * A branded monogram tile per connector. We render the monogram directly (no
+ * external logo CDN) so tiles always look clean, work offline, and don't depend
+ * on third-party hosts.
  */
 export function ConnectorLogo({ type, size = 44 }: { type: string; size?: number }) {
   const brand = brandFor(type);
-  const sources = brand.generic ? [] : logoSources(brand.domain);
-  const [idx, setIdx] = useState(0);
-
-  const showMonogram = brand.generic || idx >= sources.length;
-
-  if (showMonogram) {
-    return (
-      <div
-        className="flex items-center justify-center rounded-xl font-bold text-white shadow-sm"
-        style={{
-          width: size,
-          height: size,
-          fontSize: Math.max(11, size * 0.3),
-          background: `linear-gradient(135deg, ${brand.color}, ${shade(brand.color, -18)})`,
-        }}
-      >
-        {brand.initials}
-      </div>
-    );
-  }
-
   return (
     <div
-      className="flex items-center justify-center overflow-hidden rounded-xl bg-white ring-1 ring-slate-200"
-      style={{ width: size, height: size }}
+      className="flex items-center justify-center rounded-xl font-bold text-white shadow-sm"
+      style={{
+        width: size,
+        height: size,
+        fontSize: Math.max(11, size * 0.3),
+        background: `linear-gradient(135deg, ${brand.color}, ${shade(brand.color, -18)})`,
+      }}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={sources[idx]}
-        alt={`${type} logo`}
-        width={size * 0.62}
-        height={size * 0.62}
-        className="object-contain"
-        onError={() => setIdx((i) => i + 1)}
-      />
+      {brand.initials}
     </div>
   );
 }

@@ -14,6 +14,7 @@ import {
 import Link from "next/link";
 
 import { ConnectorLogo } from "@/components/ConnectorLogo";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { HeroChart } from "@/components/landing/HeroChart";
 
 const CONNECTOR_TYPES = [
@@ -45,12 +46,15 @@ function TopNav() {
           </span>
           <span className="font-bold">Unified Solutions Platform</span>
         </div>
-        <Link
-          href="/marketplace"
-          className="rounded-lg bg-white/10 px-4 py-2 text-sm font-semibold text-white ring-1 ring-white/20 backdrop-blur transition hover:bg-white/20"
-        >
-          Launch platform
-        </Link>
+        <div className="flex items-center gap-3">
+          <ThemeToggle />
+          <Link
+            href="/marketplace"
+            className="rounded-lg bg-white/10 px-4 py-2 text-sm font-semibold text-white ring-1 ring-white/20 backdrop-blur transition hover:bg-white/20"
+          >
+            Launch platform
+          </Link>
+        </div>
       </nav>
     </header>
   );
@@ -65,10 +69,7 @@ function Hero() {
 
       <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-6 pb-24 pt-36 lg:grid-cols-2">
         <div className="animate-fade-up">
-          <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-brand-100 ring-1 ring-white/15">
-            <Sparkles size={13} className="text-azure" /> AI-native data platform
-          </span>
-          <h1 className="mt-5 text-5xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl">
+          <h1 className="text-5xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl">
             Connect any data.
             <br />
             Build any <span className="text-gradient">dashboard.</span>
@@ -95,10 +96,10 @@ function Hero() {
 
         {/* Floating dashboard preview with a live chart */}
         <div className="animate-fade-up [animation-delay:120ms]">
-          <div className="animate-float rounded-2xl bg-white/95 p-5 shadow-lift ring-1 ring-white/40">
+          <div className="animate-float rounded-2xl bg-white p-5 shadow-lift ring-1 ring-white/40 dark:ring-white/10">
             <div className="mb-3 flex items-center justify-between">
               <div className="text-sm font-bold text-brand-950">Antenatal Care — National</div>
-              <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700">
+              <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">
                 LIVE
               </span>
             </div>
