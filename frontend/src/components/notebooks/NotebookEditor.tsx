@@ -2,7 +2,7 @@
 
 import Editor from "@monaco-editor/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Database, Download, Pencil, Play, Plus, RotateCcw, Trash2, Type } from "lucide-react";
+import { ArrowLeft, Database, Download, Loader2, Pencil, Play, Plus, RotateCcw, Trash2, Type } from "lucide-react";
 import Link from "next/link";
 import { memo, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
@@ -288,10 +288,10 @@ function CellViewBase({ notebookId, cell }: { notebookId: string; cell: Notebook
           <button
             onClick={() => run.mutate()}
             disabled={run.isPending}
-            title={`Run cell (Shift+Enter)${cell.execution_count ? ` · last run [${cell.execution_count}]` : ""}`}
-            className="grid h-7 w-7 place-items-center rounded-full bg-brand-600 text-white transition hover:bg-brand-700 disabled:opacity-50"
+            title={run.isPending ? "Running…" : `Run cell (Shift+Enter)${cell.execution_count ? ` · last run [${cell.execution_count}]` : ""}`}
+            className="grid h-7 w-7 place-items-center rounded-full bg-brand-600 text-white transition hover:bg-brand-700 disabled:opacity-60"
           >
-            <Play size={13} className={run.isPending ? "animate-pulse" : ""} />
+            {run.isPending ? <Loader2 size={14} className="animate-spin" /> : <Play size={13} />}
           </button>
         </div>
         <div className="min-w-0 flex-1">

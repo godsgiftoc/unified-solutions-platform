@@ -2,7 +2,7 @@
 
 import Editor from "@monaco-editor/react";
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Bookmark, ChevronDown, ChevronRight, Columns3, Database, FolderOpen, Pencil, Play, Save, Table2 } from "lucide-react";
+import { ArrowLeft, Bookmark, ChevronDown, ChevronRight, Columns3, Database, FolderOpen, Loader2, Pencil, Play, Save, Table2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -145,7 +145,7 @@ export function SqlEditor() {
             disabled={run.isPending || !sql.trim()}
             className="inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:opacity-50"
           >
-            <Play size={15} /> {run.isPending ? "Running…" : "Run"}
+            {run.isPending ? <Loader2 size={15} className="animate-spin" /> : <Play size={15} />} {run.isPending ? "Running…" : "Run"}
           </button>
           <button
             onClick={onSaveQuery}
