@@ -296,7 +296,7 @@ function Footer() {
   return (
     <footer className="border-t border-slate-200 bg-white py-8">
       <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-6 text-sm text-slate-400 sm:flex-row">
-        <span>Unified Solutions Platform · Open source (Apache-2.0)</span>
+        <span>Unified Solutions Platform · © eHealth Africa</span>
         <span>Connect · Shape · Build · Share</span>
       </div>
     </footer>

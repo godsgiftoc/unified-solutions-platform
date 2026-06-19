@@ -2,12 +2,12 @@
 
 import Editor from "@monaco-editor/react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Database, Download, Loader2, Pencil, Play, Plus, RotateCcw, Trash2, Type } from "lucide-react";
+import { ArrowLeft, Database, Download, Eraser, Loader2, Pencil, Play, Plus, RotateCcw, Square, Trash2, Type } from "lucide-react";
 import Link from "next/link";
 import { memo, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 
-import { Datasets, Notebooks, type NotebookCell, type NotebookDetail } from "@/lib/api";
+import { Datasets, Notebooks, type CellOutput, type NotebookCell, type NotebookDetail } from "@/lib/api";
 import { downloadNotebook } from "@/lib/ipynb";
 import { useToast } from "@/lib/toast";
 import { useTheme } from "@/lib/theme";
@@ -199,7 +199,7 @@ export function NotebookEditor({ notebookId }: { notebookId: string }) {
             ) : (
               nb.data.cells.map((cell) => (
                 <div key={cell.id}>
-                  <CellView notebookId={notebookId} cell={cell} />
+                  <CellView notebookId={notebookId} workspaceId={nb.data!.workspace_id} cell={cell} />
                   <InsertBar onAdd={(t) => addCell.mutate({ cellType: t, after: cell.position })} />
                 </div>
               ))
@@ -232,6 +232,7 @@ const CellView = memo(
   CellViewBase,
   (a, b) =>
     a.notebookId === b.notebookId &&
+    a.workspaceId === b.workspaceId &&
     a.cell.id === b.cell.id &&
     a.cell.cell_type === b.cell.cell_type &&
     a.cell.source === b.cell.source &&
@@ -239,26 +240,99 @@ const CellView = memo(
     JSON.stringify(a.cell.outputs) === JSON.stringify(b.cell.outputs),
 );
 
-function CellViewBase({ notebookId, cell }: { notebookId: string; cell: NotebookCell }) {
+function CellViewBase({ notebookId, workspaceId, cell }: { notebookId: string; workspaceId: string; cell: NotebookCell }) {
   const qc = useQueryClient();
   const { toast } = useToast();
   const { resolved } = useTheme();
   const [source, setSource] = useState(cell.source);
   useEffect(() => setSource(cell.source), [cell.source]);
 
+  // Live stdout streamed from the kernel while a cell runs (null = not running).
+  const [liveOut, setLiveOut] = useState<string | null>(null);
+  const liveRef = useRef("");
+  // Lets Stop end the client-side stream immediately (the kernel halts on its own time).
+  const abortRef = useRef<AbortController | null>(null);
+
   const save = useMutation({ mutationFn: (s: string) => Notebooks.updateCell(notebookId, cell.id, s) });
   const run = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (): Promise<NotebookCell | null> => {
       await Notebooks.updateCell(notebookId, cell.id, source);
-      return Notebooks.runCell(notebookId, cell.id);
+      liveRef.current = "";
+      setLiveOut(""); // show the live block immediately, even before the first print
+      const controller = new AbortController();
+      abortRef.current = controller;
+      let finalCell: NotebookCell | null = null;
+      const finalize = (outputs: CellOutput[]): NotebookCell => ({
+        ...cell,
+        source,
+        outputs,
+        execution_count: (cell.execution_count ?? 0) + 1,
+      });
+      try {
+        await Notebooks.runCellStream(
+          notebookId,
+          cell.id,
+          (f) => {
+            if (f.type === "stream") {
+              liveRef.current += f.text;
+              setLiveOut(liveRef.current);
+            } else if (f.type === "done") {
+              const outputs: CellOutput[] = [];
+              if (f.stdout) outputs.push({ type: "stdout", text: f.stdout });
+              outputs.push(...(f.outputs ?? []));
+              finalCell = finalize(outputs);
+            }
+          },
+          controller.signal,
+        );
+      } catch (e) {
+        // Stop was clicked → we aborted the stream. Don't wait on the server;
+        // resolve right now with whatever streamed so far + a stopped marker.
+        if (controller.signal.aborted) {
+          const outputs: CellOutput[] = [];
+          if (liveRef.current) outputs.push({ type: "stdout", text: liveRef.current });
+          outputs.push({ type: "error", text: "KeyboardInterrupt: execution interrupted by user" });
+          finalCell = finalize(outputs);
+        } else {
+          throw e;
+        }
+      } finally {
+        abortRef.current = null;
+      }
+      return finalCell;
     },
     // Patch just this cell in the cache (no full refetch) so the page doesn't
     // re-render every cell and jump when you run one.
+    onSuccess: (updated) => {
+      if (updated)
+        qc.setQueryData<NotebookDetail>(["notebook", notebookId], (old) =>
+          old ? { ...old, cells: old.cells.map((c) => (c.id === cell.id ? updated : c)) } : old,
+        );
+      setLiveOut(null);
+    },
+    onError: () => {
+      setLiveOut(null);
+      toast("Couldn't run the cell", "error");
+    },
+  });
+  // Stop a running cell: tell the kernel to halt AND end the client stream right
+  // away (aborting it makes `run` resolve immediately with the output so far, so
+  // the UI doesn't sit spinning while the kernel/connection wind down).
+  const interrupt = useMutation({
+    mutationFn: () => Notebooks.interrupt(notebookId),
+    onError: () => toast("Couldn't stop the cell", "error"),
+  });
+  const stop = () => {
+    interrupt.mutate();
+    abortRef.current?.abort();
+  };
+  const clear = useMutation({
+    mutationFn: () => Notebooks.clearCell(notebookId, cell.id),
     onSuccess: (updated) =>
       qc.setQueryData<NotebookDetail>(["notebook", notebookId], (old) =>
         old ? { ...old, cells: old.cells.map((c) => (c.id === cell.id ? updated : c)) } : old,
       ),
-    onError: () => toast("Couldn't run the cell", "error"),
+    onError: () => toast("Couldn't clear the output", "error"),
   });
   const del = useMutation({
     mutationFn: () => Notebooks.deleteCell(notebookId, cell.id),
@@ -286,12 +360,25 @@ function CellViewBase({ notebookId, cell }: { notebookId: string; cell: Notebook
       <div className="flex items-stretch">
         <div className="flex w-12 shrink-0 items-start justify-center border-r border-slate-100 bg-slate-50/70 pt-3.5 transition group-focus-within:bg-brand-50 dark:bg-white/5 dark:group-focus-within:bg-brand-500/25">
           <button
-            onClick={() => run.mutate()}
-            disabled={run.isPending}
-            title={run.isPending ? "Running…" : `Run cell (Shift+Enter)${cell.execution_count ? ` · last run [${cell.execution_count}]` : ""}`}
-            className="grid h-7 w-7 place-items-center rounded-full bg-brand-600 text-white transition hover:bg-brand-700 disabled:opacity-60"
+            onClick={() => (run.isPending ? stop() : run.mutate())}
+            title={
+              run.isPending
+                ? "Stop cell"
+                : `Run cell (Shift+Enter)${cell.execution_count ? ` · last run [${cell.execution_count}]` : ""}`
+            }
+            className={`relative grid h-7 w-7 place-items-center rounded-full text-white transition ${
+              run.isPending ? "bg-brand-600 hover:bg-rose-600" : "bg-brand-600 hover:bg-brand-700"
+            }`}
           >
-            {run.isPending ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />}
+            {run.isPending ? (
+              <>
+                {/* Spinner ring rotating around a stop square — click to interrupt. */}
+                <Loader2 size={26} className="absolute animate-spin opacity-80" />
+                <Square size={9} strokeWidth={0} className="relative fill-current" />
+              </>
+            ) : (
+              <Play size={14} />
+            )}
           </button>
         </div>
         <div className="min-w-0 flex-1">
@@ -344,18 +431,43 @@ function CellViewBase({ notebookId, cell }: { notebookId: string; cell: Notebook
       </div>
 
       {/* Output — a separate block below the code cell, aligned under the editor (VS Code-style).
-          On re-run we KEEP the existing output visible (just dim it) so the height stays
-          stable and the page doesn't jump; the "Executing…" placeholder only shows on a
-          cell's first run when there's nothing to keep. */}
-      {cell.outputs?.length > 0 ? (
-        <div className={`ml-12 mt-1.5 transition-opacity ${run.isPending ? "opacity-50" : ""}`}>
-          <CellOutputs outputs={cell.outputs} />
+          While running we show stdout LIVE as it streams in; when the run finishes the
+          authoritative outputs (incl. tables/images/errors) replace it. Between runs we keep
+          the last outputs so the height stays stable and the page doesn't jump. */}
+      {run.isPending && liveOut !== null ? (
+        <div className="ml-12 mt-1.5">
+          <LiveOutput text={liveOut} />
         </div>
-      ) : run.isPending ? (
-        <div className="ml-12 mt-1.5 inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-400 shadow-card dark:border-white/10">
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand-500" /> Executing…
+      ) : cell.outputs?.length > 0 ? (
+        <div className="group/out relative ml-12 mt-1.5">
+          <button
+            onClick={() => clear.mutate()}
+            title="Clear output"
+            className="absolute -top-2 right-1 z-10 inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-1.5 py-0.5 text-[11px] font-medium text-slate-400 opacity-0 shadow-sm transition hover:text-red-600 group-hover/out:opacity-100 dark:border-white/10"
+          >
+            <Eraser size={12} /> Clear
+          </button>
+          <CellOutputs outputs={cell.outputs} workspaceId={workspaceId} />
         </div>
       ) : null}
+    </div>
+  );
+}
+
+/** Live, growing stdout shown while a cell is still running. Styled to match
+    CellOutputs' stdout block so the swap to final output is seamless. */
+function LiveOutput({ text }: { text: string }) {
+  return (
+    <div className="space-y-2 rounded-lg border border-slate-200 bg-white p-3 shadow-card dark:border-white/10 dark:bg-white/[0.03]">
+      {text ? (
+        <pre className="max-h-80 overflow-auto whitespace-pre-wrap px-1 font-mono text-xs leading-relaxed text-slate-700">
+          {text}
+        </pre>
+      ) : null}
+      <div className="inline-flex items-center gap-2 px-1 text-xs text-slate-400">
+        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand-500" />
+        Running… click the stop button to interrupt
+      </div>
     </div>
   );
 }

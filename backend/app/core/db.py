@@ -44,7 +44,15 @@ def _timestamp_column(**kw):
     return mapped_column(DateTime(timezone=True), default=utcnow, **kw)
 
 
-engine = create_engine(settings.database_url, pool_pre_ping=True, future=True)
+engine = create_engine(
+    settings.database_url,
+    pool_pre_ping=True,
+    future=True,
+    pool_size=settings.db_pool_size,
+    max_overflow=settings.db_max_overflow,
+    pool_timeout=settings.db_pool_timeout_s,
+    pool_recycle=settings.db_pool_recycle_s,
+)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False, class_=Session)
 
 

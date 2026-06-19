@@ -6,7 +6,8 @@ them — without hand-wiring each one.
 
 > Connect → Catalog → Shape (SQL/Python) → Visualize → Share
 
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+An **eHealth Africa** platform. Proprietary — internal use within eHealth Africa
+and authorized partners.
 
 ## Features
 
@@ -95,4 +96,4 @@ reports: see [SECURITY.md](SECURITY.md).
 
 ## License
 
-[Apache License 2.0](LICENSE) © 2026 Godsgift Olomu.
+Proprietary — © 2026 eHealth Africa. All rights reserved. See [LICENSE](LICENSE).

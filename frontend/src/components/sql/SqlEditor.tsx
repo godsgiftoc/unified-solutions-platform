@@ -240,6 +240,7 @@ export function SqlEditor() {
               options={{
                 minimap: { enabled: false },
                 fontSize: 14,
+                wordWrap: "on",
                 scrollBeyondLastLine: false,
                 padding: { top: 12 },
                 renderLineHighlight: "none",

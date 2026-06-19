@@ -10,8 +10,10 @@ queryable, they shape it in a **SQL editor** or **Python notebook**, build **das
 (Looker-style, incl. OpenStreetMap geo maps), and **share** them — including public
 view-only links. Published dashboards appear in a cross-project **Marketplace**.
 
-It is a **personal open-source project** (Apache-2.0, © Godsgift Olomu). It is **not**
-affiliated with any organization — do not reintroduce "eHealth" branding.
+It is an **eHealth Africa** platform — **proprietary**, © eHealth Africa (see LICENSE),
+for internal use within eHealth Africa and authorized partners. Use eHealth Africa
+branding/copyright. (Note: this reverses the earlier personal/Apache-2.0 OSS direction —
+the project was handed back to the organization.)
 
 ## Run it (dev)
 
@@ -95,13 +97,17 @@ cd backend && ruff check . && python -m py_compile app/compute/_notebook_kernel.
 
 Done: full pipeline (connect→catalog→SQL/notebook→chart→dashboard→publish→marketplace),
 public share links, global filters, robustness (loading/empty/error states + boundaries),
-accessibility pass, custom dialogs, toasts, dark/system theme, top nav, indigo+teal theme,
-Apache-2.0 OSS pack (LICENSE, NOTICE, CONTRIBUTING, SECURITY, CHANGELOG, .editorconfig,
-.github CI + templates). README is current. No Code of Conduct file (the Contributor
-Covenant text tripped an output content filter — intentionally omitted; CONTRIBUTING links
-to the Covenant site instead).
+accessibility pass, custom dialogs, toasts, dark/system theme, top nav, indigo+teal theme.
+**Auth**: username+password login + a superadmin admin page that provisions users (no public
+sign-up); the whole platform is gated (dev auto-login is off by default). **Notebook**: live
+streaming output, Stop (instant client-side + KeyboardInterrupt), clear output, build chart
+from a table result. **Scaling**: kernel cap + idle reaper, DB pool tuning, login rate limit,
+concurrent-run cap + wider request threadpool. Meta files (LICENSE, CONTRIBUTING, SECURITY,
+CHANGELOG, .editorconfig, .github CI + templates) are now **proprietary © eHealth Africa**
+(the Apache-2.0 LICENSE + NOTICE were removed in the org handover).
 
-Known follow-ups / not done: production OIDC auth (only dev fallback), live extractors for
-the "config" connectors (DHIS2/Kobo/ODK/etc. are gallery scaffolds), notebook gVisor sandbox,
-deeper test coverage. Placeholders to fill before publishing: `@your-github-username` in
-`.github/CODEOWNERS`, repo URL in `CHANGELOG.md`.
+Known follow-ups / not done: SSO/OIDC (login is username+password only for now), Redis-backed
+sessions + rate limiting for true multi-instance horizontal scale (current rate limit is
+per-process), live extractors for the "config" connectors (DHIS2/Kobo/ODK/etc. are gallery
+scaffolds), notebook gVisor sandbox, deeper test coverage. Set the real eHealth Africa team in
+`.github/CODEOWNERS` (currently `@eHealthAfrica/usp-maintainers`) and the repo URL in `CHANGELOG.md`.

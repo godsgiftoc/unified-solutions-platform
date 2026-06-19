@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     api_host: str = "0.0.0.0"
     api_port: int = 8000
     frontend_origin: str = "http://localhost:5173"
+    # When true (dev only), unauthenticated API calls fall back to the dev@local
+    # user. Default OFF so a real username+password login is required everywhere.
+    dev_autologin: bool = False
 
     # Secrets / sessions
     master_key: str = Field(default="", description="Fernet KEK for envelope encryption")
@@ -46,6 +49,23 @@ class Settings(BaseSettings):
     google_client_id: str = ""
     google_client_secret: str = ""
     google_hosted_domain: str = ""
+
+    # Notebook kernels / compute (scaling knobs)
+    max_kernels: int = 64  # hard cap on concurrent kernel subprocesses (LRU-evicted)
+    kernel_idle_timeout_s: int = 900  # reap a kernel idle longer than this (15 min)
+    max_concurrent_runs: int = 32  # ceiling on cells executing at once (protects the threadpool)
+    kernel_run_timeout_s: int = 600  # per-read idle backstop before a stuck kernel is killed
+    request_threads: int = 128  # anyio threadpool size: sync endpoints + streaming runs + headroom
+
+    # Database connection pool (per process; front with PgBouncer for many instances)
+    db_pool_size: int = 20
+    db_max_overflow: int = 30
+    db_pool_timeout_s: int = 30
+    db_pool_recycle_s: int = 1800
+
+    # Rate limiting (login brute-force protection; per client IP)
+    login_rate_limit: int = 10
+    login_rate_window_s: int = 60
 
     @property
     def database_url(self) -> str:

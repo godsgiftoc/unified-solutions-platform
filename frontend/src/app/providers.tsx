@@ -17,6 +17,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
         // Surface any failed data fetch as an error toast (deduped by react-query).
         queryCache: new QueryCache({
           onError: (error) => {
+            // 401 = not authenticated → the auth guard redirects to /login; no toast.
+            if (error instanceof ApiError && error.status === 401) return;
             const msg = error instanceof ApiError ? error.message : "Something went wrong loading data";
             notify(msg, "error");
           },

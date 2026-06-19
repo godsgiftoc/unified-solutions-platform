@@ -32,6 +32,7 @@ class User(UUIDMixin, TimestampMixin, Base):
     __tablename__ = "users"
 
     email: Mapped[str] = mapped_column(String(320), unique=True, index=True)
+    username: Mapped[str | None] = mapped_column(String(150), unique=True, index=True)
     full_name: Mapped[str | None] = mapped_column(String(255))
     avatar_url: Mapped[str | None] = mapped_column(String(1024))
     auth_provider: Mapped[AuthProvider] = mapped_column(

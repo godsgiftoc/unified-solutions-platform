@@ -19,8 +19,10 @@ import io
 import json
 import os
 import shlex
+import signal
 import subprocess
 import sys
+import time
 import traceback
 import urllib.request
 
@@ -147,9 +149,59 @@ G: dict = {
 }
 
 
-def run_one(code: str) -> dict:
+class _StreamingIO(io.StringIO):
+    """Captured stdout that ALSO streams live.
+
+    Every `print` is (a) accumulated into a capped buffer that becomes the cell's
+    persisted output, and (b) forwarded to the kernel's real stdout as framed
+    `{"type":"stream","text":...}` lines so the UI can show output as it happens
+    instead of only when the cell finishes.
+
+    Two caps keep a runaway loop safe: the persisted copy stops growing at
+    `_TOTAL_CAP` (memory bound), and at most `_CHUNK_CAP` chars are streamed per
+    `_INTERVAL` window (so a tight `while True: print(...)` can't flood the pipe
+    or the browser). Flushing is write-triggered — cells that print periodically
+    stream smoothly; the remainder is flushed when the cell ends."""
+
+    _TOTAL_CAP = 200_000
+    _CHUNK_CAP = 16_000
+    _INTERVAL = 0.08
+
+    def __init__(self, sink) -> None:
+        super().__init__()
+        self._sink = sink  # the real stdout (protocol channel), captured pre-redirect
+        self._pending: list[str] = []
+        self._pending_len = 0
+        self._persisted = 0
+        self._last = time.monotonic()
+
+    def write(self, s):  # type: ignore[override]
+        if self._persisted < self._TOTAL_CAP:
+            super().write(s[: self._TOTAL_CAP - self._persisted])
+            self._persisted += len(s)
+        if self._pending_len < self._CHUNK_CAP:
+            self._pending.append(s[: self._CHUNK_CAP - self._pending_len])
+            self._pending_len += len(s)
+        if time.monotonic() - self._last >= self._INTERVAL:
+            self.flush_stream()
+        return len(s)
+
+    def flush_stream(self) -> None:
+        if self._pending:
+            chunk = "".join(self._pending)
+            self._pending = []
+            self._pending_len = 0
+            try:
+                self._sink.write(json.dumps({"type": "stream", "text": chunk}) + "\n")
+                self._sink.flush()
+            except Exception:
+                pass
+        self._last = time.monotonic()
+
+
+def run_one(code: str, sink) -> dict:
     outputs: list = []
-    out = io.StringIO()
+    out = _StreamingIO(sink)
     display_value = None
     try:
         import matplotlib
@@ -163,6 +215,7 @@ def run_one(code: str) -> dict:
                 display_value = eval(compile(ast.Expression(last.value), "<cell>", "eval"), G)  # noqa: S307
             else:
                 exec(compile(tree, "<cell>", "exec"), G)  # noqa: S102
+        out.flush_stream()  # push any output buffered since the last flush
 
         import matplotlib.pyplot as plt
 
@@ -186,14 +239,33 @@ def run_one(code: str) -> dict:
             )
         elif display_value is not None:
             outputs.append({"type": "result", "text": repr(display_value)})
-    except Exception:
+    except KeyboardInterrupt:
+        # User hit Stop (SIGINT). Surface Python's real KeyboardInterrupt traceback
+        # (exactly like Jupyter/Colab) and keep the kernel + its state alive.
+        out.flush_stream()
         outputs.append({"type": "error", "text": traceback.format_exc(limit=3)})
-    return {"stdout": out.getvalue(), "outputs": outputs}
+    except Exception:
+        out.flush_stream()
+        outputs.append({"type": "error", "text": traceback.format_exc(limit=3)})
+    return {"type": "done", "stdout": out.getvalue(), "outputs": outputs}
 
 
 def main() -> None:
     global WORKSPACE_ID
-    for line in sys.stdin:
+    # Restore the default SIGINT behaviour: when launched under a server (e.g.
+    # uvicorn) the kernel can inherit an ignored/custom SIGINT disposition, which
+    # would make the Stop button (proc SIGINT) a no-op. Forcing the default
+    # handler guarantees an interrupt raises KeyboardInterrupt in the running cell.
+    signal.signal(signal.SIGINT, signal.default_int_handler)
+    while True:
+        try:
+            line = sys.stdin.readline()
+        except KeyboardInterrupt:
+            # A SIGINT that lands while the kernel is idle (between cells) must
+            # not kill it — just ignore it and keep waiting for the next cell.
+            continue
+        if not line:
+            break  # stdin closed → manager shut us down
         line = line.strip()
         if not line:
             continue
@@ -202,7 +274,10 @@ def main() -> None:
         except json.JSONDecodeError:
             continue
         WORKSPACE_ID = cmd.get("workspace_id")
-        result = run_one(cmd.get("code", ""))
+        # Pass the REAL stdout as the live-stream sink; user prints are captured
+        # and forwarded through it as {"type":"stream"} frames during the run.
+        # run_one returns the final {"type":"done", ...} frame on the same channel.
+        result = run_one(cmd.get("code", ""), sys.stdout)
         sys.stdout.write(json.dumps(result, default=str) + "\n")
         sys.stdout.flush()
 

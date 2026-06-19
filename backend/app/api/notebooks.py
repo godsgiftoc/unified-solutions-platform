@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import datetime as dt
+import json
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -13,6 +15,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import WorkspaceRef, authorize_or_404, get_principal, get_session
 from app.compute import kernel_manager
 from app.core.authorize import Action, Principal, scoped
+from app.core.db import SessionLocal
 from app.models.compute import CellType, Notebook, NotebookCell
 
 router = APIRouter(prefix="/notebooks", tags=["notebooks"])
@@ -241,6 +244,100 @@ def run_cell(
     target.last_run_at = dt.datetime.now(dt.UTC)
     nb.last_active_at = dt.datetime.now(dt.UTC)
     return _cell_out(target)
+
+
+@router.post("/{notebook_id}/cells/{cell_id}/clear", response_model=CellOut)
+def clear_cell(
+    notebook_id: uuid.UUID,
+    cell_id: uuid.UUID,
+    principal: Principal = Depends(get_principal),
+    session: Session = Depends(get_session),
+) -> CellOut:
+    """Clear a cell's output (the rendered result) without touching its source."""
+    nb = session.get(Notebook, notebook_id)
+    if nb is None:
+        raise HTTPException(404, "Notebook not found")
+    authorize_or_404(principal, Action.EDIT, nb)
+    cell = session.get(NotebookCell, cell_id)
+    if cell is None or cell.notebook_id != nb.id:
+        raise HTTPException(404, "Cell not found")
+    cell.outputs = []
+    cell.execution_count = None
+    return _cell_out(cell)
+
+
+def _persist_run(cell_id: str, notebook_id: str, final: dict) -> None:
+    """Write a finished run's outputs to the DB in a fresh session (the request's
+    own session is torn down only after the streamed response completes)."""
+    outputs: list = []
+    if final.get("stdout"):
+        outputs.append({"type": "stdout", "text": final["stdout"]})
+    outputs.extend(final.get("outputs", []))
+    now = dt.datetime.now(dt.UTC)
+    with SessionLocal() as s:
+        cell = s.get(NotebookCell, uuid.UUID(cell_id))
+        if cell is not None:
+            cell.outputs = outputs
+            cell.execution_count = (cell.execution_count or 0) + 1
+            cell.last_run_at = now
+        nb = s.get(Notebook, uuid.UUID(notebook_id))
+        if nb is not None:
+            nb.last_active_at = now
+        s.commit()
+
+
+@router.post("/{notebook_id}/cells/{cell_id}/run-stream")
+def run_cell_stream(notebook_id: uuid.UUID, cell_id: uuid.UUID, request: Request) -> StreamingResponse:
+    """Run a cell and stream its stdout live as newline-delimited JSON frames.
+
+    Emits `{"type":"stream","text":...}` frames as the cell prints, then one
+    final `{"type":"done",...}` frame; the finished outputs are persisted to the
+    cell once the run completes (same shape as the non-streaming /run endpoint).
+
+    Auth + cell-load happen in a short session that is closed *before* streaming,
+    so a long run never pins a pooled DB connection. The kernel manager caps how
+    many cells run at once (``max_concurrent_runs``) to protect the threadpool.
+    """
+    with SessionLocal() as session:
+        principal = get_principal(request, session)
+        nb = session.get(Notebook, notebook_id)
+        if nb is None:
+            raise HTTPException(404, "Notebook not found")
+        authorize_or_404(principal, Action.EDIT, nb)
+        target = session.get(NotebookCell, cell_id)
+        if target is None or target.notebook_id != nb.id:
+            raise HTTPException(404, "Cell not found")
+        nb_id, ws_id, cid = str(nb.id), str(nb.workspace_id), str(target.id)
+        source = target.source
+        is_markdown = target.cell_type == CellType.MARKDOWN
+        existing = target.outputs or []
+
+    def gen():
+        if is_markdown:  # markdown renders, it doesn't execute
+            yield json.dumps({"type": "done", "stdout": "", "outputs": existing}) + "\n"
+            return
+        final = None
+        for msg in kernel_manager.run_stream(nb_id, source, workspace_id=ws_id):
+            yield json.dumps(msg) + "\n"
+            if msg.get("type") == "done":
+                final = msg
+        if final is not None:
+            _persist_run(cid, nb_id, final)
+
+    return StreamingResponse(gen(), media_type="application/x-ndjson")
+
+
+@router.post("/{notebook_id}/interrupt", status_code=status.HTTP_204_NO_CONTENT)
+def interrupt_kernel(
+    notebook_id: uuid.UUID,
+    principal: Principal = Depends(get_principal),
+    session: Session = Depends(get_session),
+) -> None:
+    nb = session.get(Notebook, notebook_id)
+    if nb is None:
+        raise HTTPException(404, "Notebook not found")
+    authorize_or_404(principal, Action.EDIT, nb)
+    kernel_manager.interrupt(str(nb.id))
 
 
 @router.post("/{notebook_id}/restart", status_code=status.HTTP_204_NO_CONTENT)

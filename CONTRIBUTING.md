@@ -1,12 +1,11 @@
 # Contributing to the Unified Solutions Platform
 
-Thanks for your interest in contributing! This project is a self-service data
-platform — connect a source, shape it with SQL or Python, build dashboards, and
-share them. Contributions of all kinds are welcome: bug reports, features,
-docs, tests, and connectors.
+The Unified Solutions Platform (USP) is an **eHealth Africa** internal platform —
+connect a source, shape it with SQL or Python, build dashboards, and share them.
+This guide is for eHealth Africa engineers and authorized partners working on it:
+bug reports, features, docs, tests, and connectors are all welcome.
 
-Please keep all project spaces respectful and constructive. We follow the spirit
-of the [Contributor Covenant](https://www.contributor-covenant.org/).
+Please keep all project spaces respectful and constructive.
 
 ## Ways to contribute
 
@@ -82,5 +81,5 @@ Conventional Commits (`feat:`, `fix:`, `docs:`…) are welcome but not required.
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the
-project's [Apache License 2.0](LICENSE).
+By contributing, you agree that your contributions become part of this
+proprietary project, © eHealth Africa (see [LICENSE](LICENSE)).

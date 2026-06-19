@@ -11,6 +11,7 @@ import {
   NotebookPen,
   Plug,
   Plus,
+  Shield,
   Sparkles,
   Store,
   Table2,
@@ -106,7 +107,7 @@ function UserMenu() {
   const me = useQuery({ queryKey: ["me"], queryFn: () => Auth.me(), retry: false });
   const signOut = useMutation({
     mutationFn: () => Auth.logout(),
-    onSuccess: () => { setOpen(false); toast("Signed out"); router.push("/"); },
+    onSuccess: () => { setOpen(false); toast("Signed out"); router.push("/login"); },
     onError: () => toast("Couldn't sign out", "error"),
   });
 
@@ -127,8 +128,18 @@ function UserMenu() {
           <div role="menu" className="absolute right-0 top-full z-20 mt-1.5 w-56 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 text-slate-700 shadow-lift">
             <div className="border-b border-slate-100 px-3 py-2.5">
               <div className="text-[10px] uppercase tracking-wide text-slate-400">Signed in as</div>
-              <div className="truncate text-sm font-medium text-slate-700">{me.data?.email ?? "dev@local"}</div>
+              <div className="truncate text-sm font-medium text-slate-700">{me.data?.full_name || me.data?.username || me.data?.email}</div>
+              {me.data?.is_org_admin && <div className="mt-0.5 text-[11px] font-semibold text-brand-600">Superadmin</div>}
             </div>
+            {me.data?.is_org_admin && (
+              <Link
+                href="/admin"
+                onClick={() => setOpen(false)}
+                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                <Shield size={15} className="text-brand-600" /> User management
+              </Link>
+            )}
             <button onClick={() => signOut.mutate()} disabled={signOut.isPending} className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50">
               <LogOut size={15} /> {signOut.isPending ? "Signing out…" : "Sign out"}
             </button>

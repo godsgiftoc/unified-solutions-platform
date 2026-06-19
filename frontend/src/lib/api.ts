@@ -27,6 +27,51 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+/** Stream a newline-delimited-JSON POST response, invoking `onFrame` per line. */
+async function streamNdjson(
+  path: string,
+  onFrame: (frame: unknown) => void,
+  signal?: AbortSignal,
+): Promise<void> {
+  const res = await fetch(`${BASE}${path}`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    signal,
+  });
+  if (!res.ok || !res.body) {
+    let detail = res.statusText;
+    try {
+      detail = (await res.json()).detail ?? detail;
+    } catch {
+      /* ignore */
+    }
+    throw new ApiError(res.status, detail);
+  }
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buf = "";
+  const drain = (flush: boolean) => {
+    let nl: number;
+    while ((nl = buf.indexOf("\n")) >= 0) {
+      const line = buf.slice(0, nl).trim();
+      buf = buf.slice(nl + 1);
+      if (line) onFrame(JSON.parse(line));
+    }
+    if (flush && buf.trim()) {
+      onFrame(JSON.parse(buf.trim()));
+      buf = "";
+    }
+  };
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buf += decoder.decode(value, { stream: true });
+    drain(false);
+  }
+  drain(true);
+}
+
 export const api = {
   get: <T>(path: string) => request<T>(path),
   post: <T>(path: string, body?: unknown) =>
@@ -139,10 +184,47 @@ export const Workspaces = {
     api.post<Workspace>("/workspaces", { name, description }),
 };
 
+export interface Me {
+  user_id: string;
+  username: string | null;
+  email: string;
+  full_name?: string | null;
+  is_org_admin: boolean;
+  memberships: { workspace_id: string; role: string }[];
+}
+
 export const Auth = {
-  devLogin: (email: string) => api.post("/auth/dev-login", { email }),
+  login: (username: string, password: string) =>
+    api.post<Me>("/auth/login", { username, password }),
   logout: () => api.post("/auth/logout", {}),
-  me: () => api.get<{ email: string; full_name?: string | null }>("/auth/me"),
+  me: () => api.get<Me>("/auth/me"),
+};
+
+export interface AdminUser {
+  id: string;
+  username: string | null;
+  email: string;
+  full_name: string | null;
+  is_org_admin: boolean;
+  is_active: boolean;
+  last_login_at: string | null;
+  created_at: string;
+}
+
+export const Admin = {
+  listUsers: () => api.get<AdminUser[]>("/admin/users"),
+  createUser: (input: {
+    username: string;
+    password: string;
+    full_name?: string;
+    email?: string;
+    is_org_admin?: boolean;
+  }) => api.post<AdminUser>("/admin/users", input),
+  updateUser: (
+    id: string,
+    patch: { full_name?: string; email?: string; is_org_admin?: boolean; is_active?: boolean; password?: string },
+  ) => api.patch<AdminUser>(`/admin/users/${id}`, patch),
+  deactivateUser: (id: string) => api.del<AdminUser>(`/admin/users/${id}`),
 };
 
 // ---- Datasets / Compute ----
@@ -245,6 +327,13 @@ export const Datasets = {
   },
   createSql: (workspaceId: string, name: string, sql: string) =>
     api.post<Dataset>("/datasets", { workspace_id: workspaceId, name, sql }),
+  fromRecords: (
+    workspaceId: string,
+    name: string,
+    columns: string[],
+    rows: (string | number | boolean | null)[][],
+    source = "notebook",
+  ) => api.post<Dataset>("/datasets/from-records", { workspace_id: workspaceId, name, columns, rows, source }),
   remove: (id: string) => api.del<void>(`/datasets/${id}`),
 };
 
@@ -351,6 +440,10 @@ export interface NotebookSummary {
 export interface NotebookDetail extends NotebookSummary {
   cells: NotebookCell[];
 }
+/** A frame from the live cell-run stream: incremental stdout, then a final result. */
+export type KernelFrame =
+  | { type: "stream"; text: string }
+  | { type: "done"; stdout: string; outputs: CellOutput[] };
 
 export const Notebooks = {
   list: (ws?: string) => api.get<NotebookSummary[]>(`/notebooks${ws ? `?workspace_id=${ws}` : ""}`),
@@ -362,7 +455,12 @@ export const Notebooks = {
   updateCell: (id: string, cellId: string, source: string) =>
     api.patch<NotebookCell>(`/notebooks/${id}/cells/${cellId}`, { source }),
   runCell: (id: string, cellId: string) => api.post<NotebookCell>(`/notebooks/${id}/cells/${cellId}/run`),
+  // Run a cell and stream its stdout live; `onFrame` fires per kernel frame.
+  runCellStream: (id: string, cellId: string, onFrame: (frame: KernelFrame) => void, signal?: AbortSignal) =>
+    streamNdjson(`/notebooks/${id}/cells/${cellId}/run-stream`, (f) => onFrame(f as KernelFrame), signal),
+  clearCell: (id: string, cellId: string) => api.post<NotebookCell>(`/notebooks/${id}/cells/${cellId}/clear`),
   deleteCell: (id: string, cellId: string) => api.del<void>(`/notebooks/${id}/cells/${cellId}`),
+  interrupt: (id: string) => api.post<void>(`/notebooks/${id}/interrupt`),
   restart: (id: string) => api.post<void>(`/notebooks/${id}/restart`),
   remove: (id: string) => api.del<void>(`/notebooks/${id}`),
 };

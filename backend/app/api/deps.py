@@ -39,13 +39,22 @@ def get_principal(request: Request, session: Session = Depends(get_session)) -> 
         if uid:
             user = session.get(User, uuid.UUID(uid))
 
-    if user is None and not settings.is_production:
+    # Opt-in dev convenience only: fall back to dev@local when explicitly enabled.
+    # Off by default so a real login is required (including in development).
+    if user is None and settings.dev_autologin and not settings.is_production:
         user = session.scalar(select(User).where(User.email == DEV_USER_EMAIL))
 
     if user is None or not user.is_active:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
 
     return _principal_from_user(session, user)
+
+
+def get_admin_principal(principal: Principal = Depends(get_principal)) -> Principal:
+    """Require the caller to be a superadmin (org admin) — for user management."""
+    if not principal.is_org_admin:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Superadmin only")
+    return principal
 
 
 def map_not_authorized(exc: NotAuthorized) -> HTTPException:

@@ -1,4 +1,4 @@
 # Code owners are auto-requested for review on matching paths.
-# Replace @your-github-username with your GitHub handle (or a team) before use.
+# Update the team/handle below to the actual eHealth Africa GitHub team.
 
-* @your-github-username
+* @eHealthAfrica/usp-maintainers

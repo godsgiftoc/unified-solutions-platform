@@ -8,6 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import (
+    admin,
     auth,
     charts,
     connections,
@@ -30,6 +31,15 @@ logger = get_logger("app")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     configure_logging(json_logs=settings.is_production)
+    # Give sync endpoints (incl. long-lived streaming cell runs) room so a burst
+    # of runs can't starve request handling. Concurrent *runs* are separately
+    # capped in the kernel manager; this just widens the overall threadpool.
+    try:
+        import anyio
+
+        anyio.to_thread.current_default_thread_limiter().total_tokens = settings.request_threads
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("threadpool_resize_failed", error=str(exc))
     load_all()  # import connector source modules so the catalog is populated
     # Ensure the catalog's <schema>.<table> views exist (Unity Catalog-style namespace).
     try:
@@ -62,6 +72,7 @@ app.add_middleware(
 API_PREFIX = "/api/v1"
 for module in (
     auth,
+    admin,
     workspaces,
     connectors,
     connections,
