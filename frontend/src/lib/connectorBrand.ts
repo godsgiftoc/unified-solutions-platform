@@ -28,11 +28,11 @@ export function brandFor(type: string): Brand {
   return CONNECTOR_BRAND[type] ?? { color: "#5340e0", initials: type.slice(0, 2).toUpperCase() };
 }
 
-// Ordered list of logo URLs to try for a domain (best → fallback).
+// Ordered list of logo URLs to try for a domain (best → fallback). Clearbit's
+// free logo API was discontinued, so we use favicon services that still work.
 export function logoSources(domain?: string): string[] {
   if (!domain) return [];
   return [
-    `https://logo.clearbit.com/${domain}`,
     `https://icons.duckduckgo.com/ip3/${domain}.ico`,
     `https://www.google.com/s2/favicons?domain=${domain}&sz=128`,
   ];
