@@ -291,7 +291,7 @@ function CellViewBase({ notebookId, cell }: { notebookId: string; cell: Notebook
             title={run.isPending ? "Running…" : `Run cell (Shift+Enter)${cell.execution_count ? ` · last run [${cell.execution_count}]` : ""}`}
             className="grid h-7 w-7 place-items-center rounded-full bg-brand-600 text-white transition hover:bg-brand-700 disabled:opacity-60"
           >
-            {run.isPending ? <Loader2 size={14} className="animate-spin" /> : <Play size={13} />}
+            {run.isPending ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />}
           </button>
         </div>
         <div className="min-w-0 flex-1">
