@@ -24,7 +24,7 @@ const CONNECTOR_TYPES = [
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen overflow-x-hidden bg-white">
       <TopNav />
       <Hero />
       <ConnectorsStrip />
@@ -189,7 +189,7 @@ function Features() {
           <span className="text-sm font-semibold uppercase tracking-wider text-brand-600">
             ✦ One workflow
           </span>
-          <h2 className="mt-3 flex flex-nowrap items-center justify-center gap-1.5 whitespace-nowrap text-xl font-extrabold tracking-tight text-brand-950 sm:gap-2.5 sm:text-3xl lg:text-[2.6rem]">
+          <h2 className="mt-3 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-2xl font-extrabold tracking-tight text-brand-950 sm:gap-x-2.5 sm:text-3xl lg:text-[2.6rem]">
             {["Connect", "Catalog", "Shape", "Visualize", "Share"].map((step, i) => (
               <span key={step} className="inline-flex items-center gap-1.5 sm:gap-2.5">
                 {i > 0 && <span className="text-azure" aria-hidden>→</span>}
