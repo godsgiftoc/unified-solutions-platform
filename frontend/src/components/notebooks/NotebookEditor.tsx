@@ -343,14 +343,17 @@ function CellViewBase({ notebookId, cell }: { notebookId: string; cell: Notebook
       </div>
       </div>
 
-      {/* Output — a separate block below the code cell, aligned under the editor (VS Code-style). */}
-      {run.isPending ? (
+      {/* Output — a separate block below the code cell, aligned under the editor (VS Code-style).
+          On re-run we KEEP the existing output visible (just dim it) so the height stays
+          stable and the page doesn't jump; the "Executing…" placeholder only shows on a
+          cell's first run when there's nothing to keep. */}
+      {cell.outputs?.length > 0 ? (
+        <div className={`ml-12 mt-1.5 transition-opacity ${run.isPending ? "opacity-50" : ""}`}>
+          <CellOutputs outputs={cell.outputs} />
+        </div>
+      ) : run.isPending ? (
         <div className="ml-12 mt-1.5 inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-400 shadow-card dark:border-white/10">
           <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand-500" /> Executing…
-        </div>
-      ) : cell.outputs?.length > 0 ? (
-        <div className="ml-12 mt-1.5">
-          <CellOutputs outputs={cell.outputs} />
         </div>
       ) : null}
     </div>
